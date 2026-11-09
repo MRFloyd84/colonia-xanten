@@ -41,6 +41,7 @@
 #city2Switch.active{color:#1b2c25;background:#dbb97b;border-color:#f6dda0}
 body.city2-active .cx-building-targets{display:none!important}
 body.city2-active #editorToggle{opacity:.4;pointer-events:none}
+#pixi21Switch{font-weight:800;font-size:16px;color:#f1cf83}#pixi21Switch.active{background:#b88e4d;color:#17241b}.map-controls{z-index:14}.map-help{z-index:10}body.pixi21-active .cx-building-targets{display:none!important}body.pixi21-active #mapCanvas{visibility:hidden}
 </style>
   <title>COLONIA XANTEN · 150 n. Chr. · v1.0</title>
 </head>
@@ -60,6 +61,7 @@ body.city2-active #editorToggle{opacity:.4;pointer-events:none}
       <button type="button" id="resetView" aria-label="Ansicht zentrieren">⌖</button>
       <button type="button" id="motionToggle" aria-label="Animation ausschalten" title="Animation an/aus">◉</button>
       <button type="button" id="city2Switch" aria-label="Neue Stadtansicht einschalten" title="Stadt 2.0 testen">2.0</button>
+      <button type="button" id="pixi21Switch" title="PixiJS-Stadt 2.1 testen" aria-label="PixiJS-Stadt 2.1 testen">P</button>
       <button type="button" id="editorToggle" aria-label="Kartenbearbeitung einschalten" title="Gebäude anordnen">✎</button>
     </div>
     <div class="map-help" id="mapHelp">Schiffe fahren · Bürger bewegen sich · Gebäude antippen</div>
@@ -733,6 +735,7 @@ function refreshMapEditor(){
  editorPanel.querySelectorAll('[data-needs-selection]').forEach(el=>{el.disabled=!d});
 }
 function startMapEditor(){
+ if(pixi21)togglePixi21();
  if(city2Mode)city2Switch();
  if(regionMode)setRegionMode(false);
  editorMode=true;editorSelected=null;editorPanel.hidden=false;
@@ -1214,6 +1217,7 @@ function city2Pick(clientX,clientY){
  return null;
 }
 function city2Switch(){
+ if(pixi21)togglePixi21();
  city2Mode=!city2Mode;
  if(editorMode)stopMapEditor();
  $('city2Switch').classList.toggle('active',city2Mode);
@@ -1421,17 +1425,59 @@ function city2Draw(){
  ctx.restore();
 }
 
-function draw(){if(regionMode){drawRegion();return}if(city2Mode){city2Draw();return}if(!vw||!vh||document.hidden)return;
+
+// Separate opt-in PixiJS renderer. It never mutates simulation state or save data.
+let pixi21=null,pixi21Loading=null;
+async function togglePixi21(){
+ if(pixi21){
+  pixi21.stop();pixi21=null;document.body.classList.remove('pixi21-active');
+  $('pixi21Switch').classList.remove('active');$('pixi21Switch').textContent='P';
+  $('mapHelp').textContent='Schiffe fahren · Bürger bewegen sich · Gebäude antippen';
+  targetLayoutKey='';draw();toast('Bewährte Stadtkarte aktiv');return;
+ }
+ $('pixi21Switch').disabled=true;
+ try{
+  if(regionMode)setRegionMode(false);
+  if(city2Mode)city2Switch();
+  if(editorMode)stopMapEditor();
+  if(!window.ColoniaPixi21){
+   if(!pixi21Loading){
+    pixi21Loading=new Promise((resolve,reject)=>{
+     const el=document.createElement('script');
+     el.src='pixi21.bundle.js';el.onload=resolve;el.onerror=()=>reject(Error('PixiJS-Bundle ist nicht installiert'));
+     document.head.appendChild(el);
+    }).catch(e=>{pixi21Loading=null;throw e});
+   }
+   await pixi21Loading;
+  }
+  const assets={atlases:romanAtlas,monuments:buildingSprites,paving:cityArt.paving};
+  const runner=new window.ColoniaPixi21({mount:$('viewport'),assets,openBuilding:id=>showBuilding(id)});
+  await runner.start();
+  pixi21=runner;
+  buildingTargets.style.display='none';
+  document.body.classList.add('pixi21-active');
+  $('pixi21Switch').classList.add('active');$('pixi21Switch').textContent='1.0';
+  $('mapHelp').textContent='PIXIJS 2.1 · Wischen · Gebäude antippen';
+  toast('PixiJS-Prototyp 2.1 aktiv');
+ }catch(e){
+  console.error('[Pixi21]',e);if(pixi21){try{pixi21.stop()}catch{}pixi21=null}
+  document.body.classList.remove('pixi21-active');
+  toast('PixiJS nicht gestartet: '+String(e.message||e));
+ }finally{$('pixi21Switch').disabled=false}
+}
+$('pixi21Switch').onclick=togglePixi21;
+
+function draw(){if(pixi21)return;if(regionMode){drawRegion();return}if(city2Mode){city2Draw();return}if(!vw||!vh||document.hidden)return;
  clampPan();
  const key=[canvas.width,canvas.height,zoom.toFixed(4),panX.toFixed(2),panY.toFixed(2),liveClock.season,layoutRevision].join('|');
  if(key!==staticKey){staticKey=key;if(staticCanvas.width!==canvas.width||staticCanvas.height!==canvas.height){staticCanvas.width=canvas.width;staticCanvas.height=canvas.height}
   const g=staticCanvas.getContext('2d');ctx=g;try{g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle='#859375';g.fillRect(0,0,vw,vh);g.save();transform();g.translate(RIVER_OFFSET,0);drawStaticMap();g.restore()}finally{ctx=mainCtx}}
  ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(staticCanvas,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.save();transform();ctx.translate(RIVER_OFFSET,0);drawDynamicMap();ctx.restore();updateBuildingTargets()}
-function resize(){const r=canvas.getBoundingClientRect();vw=r.width;vh=r.height;dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.round(vw*dpr));canvas.height=Math.max(1,Math.round(vh*dpr));base=Math.min(vw/950,vh/850);resizeRegion();draw()}
+function resize(){if(pixi21){pixi21.resize();return}const r=canvas.getBoundingClientRect();vw=r.width;vh=r.height;dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.round(vw*dpr));canvas.height=Math.max(1,Math.round(vh*dpr));base=Math.min(vw/950,vh/850);resizeRegion();draw()}
 function toWorld(cx,cy){return {x:(cx-vw/2-panX)/(base*zoom)+WORLD_W/2,y:(cy-vh/2-panY)/(base*zoom)+WORLD_H/2}}
 function setZoom(next,x=vw/2,y=vh/2){const before=toWorld(x,y);zoom=clamp(next,.65,3.1);const after=toWorld(x,y);panX+=(after.x-before.x)*base*zoom;panY+=(after.y-before.y)*base*zoom;draw()}
-function centerBuilding(id){if(regionMode)setRegionMode(false);if(city2Mode){const m=city2ById[id];if(m){const sc=city2Scale();city2PanX=-(m.x+m.w/2-CITY2_W/2)*sc;city2PanY=-(m.y+m.h/2-CITY2_H/2)*sc;city2Zoom=Math.max(city2Zoom,1.8);draw();return}}const d=defs[id];zoom=Math.max(zoom,1.15);panX=-(d.x+RIVER_OFFSET+d.w/2-WORLD_W/2)*base*zoom;panY=-(d.y+d.h/2-WORLD_H/2)*base*zoom;draw()}
-$('zoomIn').onclick=()=>regionMode?regionZoomBy(1.28):city2Mode?city2SetZoom(city2Zoom*1.23):setZoom(zoom*1.28);$('zoomOut').onclick=()=>regionMode?regionZoomBy(1/1.28):city2Mode?city2SetZoom(city2Zoom/1.23):setZoom(zoom/1.28);$('resetView').onclick=()=>{if(regionMode){rZoom=1;rPanX=0;rPanY=0;drawRegion()}else if(city2Mode){city2Zoom=1.7;city2PanX=0;city2PanY=0;city2CacheKey='';draw()}else{zoom=1;panX=52;panY=0;draw()}};
+function centerBuilding(id){if(pixi21){showBuilding(id);return}if(regionMode)setRegionMode(false);if(city2Mode){const m=city2ById[id];if(m){const sc=city2Scale();city2PanX=-(m.x+m.w/2-CITY2_W/2)*sc;city2PanY=-(m.y+m.h/2-CITY2_H/2)*sc;city2Zoom=Math.max(city2Zoom,1.8);draw();return}}const d=defs[id];zoom=Math.max(zoom,1.15);panX=-(d.x+RIVER_OFFSET+d.w/2-WORLD_W/2)*base*zoom;panY=-(d.y+d.h/2-WORLD_H/2)*base*zoom;draw()}
+$('zoomIn').onclick=()=>pixi21?pixi21.zoomBy(1.28):regionMode?regionZoomBy(1.28):city2Mode?city2SetZoom(city2Zoom*1.23):setZoom(zoom*1.28);$('zoomOut').onclick=()=>pixi21?pixi21.zoomBy(1/1.28):regionMode?regionZoomBy(1/1.28):city2Mode?city2SetZoom(city2Zoom/1.23):setZoom(zoom/1.28);$('resetView').onclick=()=>{if(pixi21){pixi21.reset();return}if(regionMode){rZoom=1;rPanX=0;rPanY=0;drawRegion()}else if(city2Mode){city2Zoom=1.7;city2PanX=0;city2PanY=0;city2CacheKey='';draw()}else{zoom=1;panX=52;panY=0;draw()}};
 // A separate DOM hit target sits directly over each drawn building.
 // Buttons give Android WebView a real touch target; the same pointer gesture
 // handler handles both canvas and buttons, so dragging and pinch zoom still work.
@@ -1447,6 +1493,7 @@ for(const [id,d] of Object.entries(editableItems)){
 }
 let targetLayoutKey='';
 function updateBuildingTargets(){
+ if(pixi21)return;
  if(city2Mode){buildingTargets.style.display='none';return}
  const key=[vw,vh,panX.toFixed(2),panY.toFixed(2),zoom.toFixed(4),regionMode,editorMode,layoutRevision].join('|');
  if(key===targetLayoutKey)return;
@@ -1651,7 +1698,7 @@ for(const p of places){const q=geo(p.lat,p.lon),isC=p.id==='colonia';rx.save();r
 rx.restore();rx.fillStyle='#223127dd';rx.fillRect(12,rH-30,108,21);rx.fillStyle='#e6d6ac';rx.font='11px system-ui';rx.textAlign='left';rx.fillText('≈ 50 km Radius',19,rH-15);
 }
 function regionZoomBy(mult,x=rW/2,y=rH/2){const before=rPoint(x,y);rZoom=clamp(rZoom*mult,.65,5);const after=rPoint(x,y);rPanX+=(after.x-before.x)*rBase()*rZoom;rPanY+=(after.y-before.y)*rBase()*rZoom;drawRegion()}
-function setRegionMode(on){if(on&&editorMode)stopMapEditor();regionMode=on;if(typeof buildingTargets!=='undefined')buildingTargets.style.display=on?'none':'block';$('regionView').classList.toggle('active',on);$('regionInfo').classList.toggle('active',on);$('regionLegend').classList.toggle('active',on);$('regionSwitch').classList.toggle('active',on);$('regionSwitch').textContent=on?'⌂ ZUR STADT':'◈ REGION · 50 KM';$('mapHelp').textContent=on?'Fundorte / Handelswege antippen · 50 km Radius':'Schiffe fahren · Bürger bewegen sich · Gebäude antippen';if(on){resizeRegion();drawRegion()}else draw()}
+function setRegionMode(on){if(on&&pixi21)togglePixi21();if(on&&editorMode)stopMapEditor();regionMode=on;if(typeof buildingTargets!=='undefined')buildingTargets.style.display=on?'none':'block';$('regionView').classList.toggle('active',on);$('regionInfo').classList.toggle('active',on);$('regionLegend').classList.toggle('active',on);$('regionSwitch').classList.toggle('active',on);$('regionSwitch').textContent=on?'⌂ ZUR STADT':'◈ REGION · 50 KM';$('mapHelp').textContent=on?'Fundorte / Handelswege antippen · 50 km Radius':'Schiffe fahren · Bürger bewegen sich · Gebäude antippen';if(on){resizeRegion();drawRegion()}else draw()}
 $('regionSwitch').onclick=()=>{closeSheet();setRegionMode(!regionMode)};
 function showPlace(p){opened='region-'+p.id;let isCity=p.id==='colonia';const tradeOk=Boolean(TRADE_ROUTES.find(r=>r.place===p.id));openSheet(`<span class="kicker">REGIO RHENI · CA. 150 N. CHR.</span><h2>${p.name}</h2><p>${p.description}</p><div class="notice">Historisch belegter Ort oder Fundplatz. Die Markerpositionen sind ungefähr, Wege und antiker Flusslauf bewusst schematisch. Keine metergenaue archäologische Karte.</div><div class="actions"><button type="button" id="regioBack">${isCity?'Stadt betreten':'Zur Regionskarte'}</button><button type="button" id="regioSource">Historische Quelle ↗</button>${tradeOk?'<button type="button" id="regioTrade">Handel mit diesem Ort ⚓</button>':''}</div>`);if(tradeOk)$('regioTrade').onclick=()=>showTrade(p.id);$('regioBack').onclick=()=>{closeSheet();if(isCity)setRegionMode(false)};$('regioSource').onclick=()=>window.open(p.source,'_blank','noopener')}
 rc.addEventListener('pointerdown',e=>{rc.setPointerCapture(e.pointerId);rTouch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(rTouch.size===1)rGesture={sx:e.clientX,sy:e.clientY,moved:false,lastDist:0};else if(rTouch.size===2){rGesture.moved=true;rGesture.lastDist=rTouchDistance()}});
