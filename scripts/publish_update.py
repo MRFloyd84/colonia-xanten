@@ -1,4 +1,4 @@
-"""Aktualisiert den öffentlichen Update-Kanal (ausgecheckter Ordner des Release-Repos).
+"""Aktualisiert den öffentlichen Update-Kanal im selben Repository (ausgechecktes main-Worktree).
 
 Legt web/game-<version>.html ab und schreibt update.json, das die App beim Start abruft.
 Optional wird zusätzlich der APK-Eintrag gesetzt.
@@ -62,11 +62,11 @@ def main() -> None:
     old_web = manifest.get("web") or {}
     has_apk = bool(a.apk_version or a.apk_code or a.apk_url)
     skip_web = False
-    if old_web.get("version") and vkey(old_web["version"]) > vkey(a.version):
+    if old_web.get("version") and vkey(old_web["version"]) >= vkey(a.version):
         if not has_apk:
-            raise SystemExit(f"Kanal enthält bereits die neuere Spielversion {old_web['version']}")
+            raise SystemExit(f"Spielversion {old_web['version']} ist bereits veröffentlicht. Bitte eine höhere Version verwenden.")
         # APK-Release mit älterem Spielstand: Spiel-Eintrag bleibt, nur die APK wird eingetragen.
-        print(f"Hinweis: Spielversion {old_web['version']} im Kanal ist neuer – nur APK wird eingetragen.")
+        print(f"Hinweis: Spielversion {old_web['version']} ist bereits gleich/neuer – nur APK wird eingetragen.")
         skip_web = True
 
     now = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
@@ -77,6 +77,9 @@ def main() -> None:
             raise SystemExit("Für den APK-Eintrag braucht es --apk-version, --apk-code und --apk-url")
         if not VERSION_RE.fullmatch(a.apk_version):
             raise SystemExit(f"Ungültige APK-Version: {a.apk_version}")
+        previous_apk = manifest.get("apk") or {}
+        if previous_apk.get("versionCode") and a.apk_code <= int(previous_apk["versionCode"]):
+            raise SystemExit(f"APK versionCode {a.apk_code} muss höher sein als {previous_apk['versionCode']}")
         manifest["apk"] = {
             "version": a.apk_version,
             "versionCode": a.apk_code,
