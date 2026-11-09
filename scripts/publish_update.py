@@ -12,6 +12,7 @@ Beispiele:
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime as dt
 import hashlib
 import json
@@ -53,6 +54,26 @@ def main() -> None:
     if raw.startswith(b"\xef\xbb\xbf"):
         raw = raw[3:]  # ohne BOM, damit die Prüfsumme in der App übereinstimmt
     html = raw.decode("utf-8")
+    # Die App laedt komplette HTML-Updates und speichert sie offline. Externe
+    # Asset-URLs wuerden nach dem Neustart ohne Netz nicht funktionieren.
+    # Darum werden die optimierten transparenten WebP-Gebaeude direkt in das
+    # veroeffentlichte HTML eingebettet, noch bevor dessen SHA-256 berechnet wird.
+    sprite_files = {
+        "forum": "forum.webp.b64",
+        "thermen": "thermen.webp.b64",
+        "amphitheater": "amphitheater.webp.b64",
+    }
+    for key, filename in sprite_files.items():
+        placeholder = "__CX_SPRITE_" + key.upper() + "__"
+        if placeholder not in html:
+            raise SystemExit(f"Spiel hat keinen Asset-Platzhalter: {placeholder}")
+        asset = (a.game.parent / "assets" / filename).read_text(encoding="ascii").strip()
+        try:
+            base64.b64decode(asset, validate=True)
+        except ValueError as e:
+            raise SystemExit(f"Ungueltige WebP-Base64-Datei {filename}: {e}") from e
+        html = html.replace(placeholder, "data:image/webp;base64," + asset)
+    raw = html.encode("utf-8")
     if meta(html, "cx-web-version", "") != a.version:
         raise SystemExit("Die Version in game.html passt nicht. Zuerst stamp_web_version.py ausführen.")
     min_shell = int(meta(html, "cx-min-shell", "1"))
