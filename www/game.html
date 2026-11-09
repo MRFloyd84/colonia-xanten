@@ -669,6 +669,8 @@ function drawRomanAtlas(name,index,x,y,w,h){
 // storehouses 11-12, temple 13, north gate 14 and fountain 15.
 const romanBuildingCell={herberge:5,werkstatt:7,lager:12,tempel:13,tor:14,insula:3,wasser:15};
 function drawRomanBuilding(id,d){
+ // Der Rheinhafen erhält eine eigene Kai-/Lagerhausgrafik aus dem Hafenatlas.
+ if(id==='hafen'&&drawRomanAtlas('harbor',0,d.x-14,d.y-15,d.w+28,d.h+27))return true;
  const cell=romanBuildingCell[id];if(cell===undefined)return false;
  const w=d.w*(id==='tor'?1.16:1.16),h=w*.92;
  return drawRomanAtlas('buildings',cell,d.x+(d.w-w)/2,d.y+d.h+8-h,w,h);
