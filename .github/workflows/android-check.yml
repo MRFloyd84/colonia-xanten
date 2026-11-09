@@ -20,6 +20,10 @@ jobs:
       - name: Verify Stadt 2.0 JavaScript and compatibility hooks
         run: node tests/city2-smoke.mjs
       - run: npm install --no-audit --no-fund
+      - name: Build offline PixiJS renderer
+        run: npm run build:pixi21
+      - name: Check PixiJS integration
+        run: node tests/pixi21-smoke.mjs
       - run: npx cap add android
       - run: npx cap sync android
       - name: Cache Gradle dependencies
