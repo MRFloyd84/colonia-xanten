@@ -6,15 +6,19 @@
   "scripts": {
     "android:init": "npx cap add android",
     "android:sync": "npx cap sync android",
-    "android:open": "npx cap open android"
+    "android:open": "npx cap open android",
+    "build:pixi21": "esbuild src/pixi21.js --bundle --minify --format=iife --target=es2022 --outfile=www/pixi21.bundle.js",
+    "check:pixi21": "node --check src/pixi21.js"
   },
   "dependencies": {
     "@capacitor/core": "^8.0.0",
     "@capacitor/android": "^8.0.0",
     "@capacitor/app": "^8.0.0",
-    "@capacitor/browser": "^8.0.0"
+    "@capacitor/browser": "^8.0.0",
+    "pixi.js": "^8.14.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.0.0"
+    "@capacitor/cli": "^8.0.0",
+    "esbuild": "^0.25.0"
   }
 }

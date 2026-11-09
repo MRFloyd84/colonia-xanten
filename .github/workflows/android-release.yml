@@ -27,6 +27,8 @@ jobs:
           APP_VERSION: ${{ github.ref_name }}
         run: python3 scripts/stamp_web_version.py "$APP_VERSION"
       - run: npm install --no-audit --no-fund
+      - name: Build offline PixiJS renderer
+        run: npm run build:pixi21
       - run: npx cap add android
       - run: npx cap sync android
       - name: Cache Gradle dependencies

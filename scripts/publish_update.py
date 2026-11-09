@@ -78,6 +78,18 @@ def main() -> None:
         except ValueError as e:
             raise SystemExit(f"Ungueltige WebP-Base64-Datei {filename}: {e}") from e
         html = html.replace(placeholder, "data:image/webp;base64," + asset)
+    # PixiJS ist ein lokal gebautes WebGL-Bundle. Für OTA muss es in der
+    # heruntergeladenen HTML-Datei liegen; eine APK-interne externe Datei
+    # wäre auf bereits installierten Geräten nicht verfügbar.
+    pixi_marker = "<!-- CX_PIXI21_BUNDLE: offline OTA publisher embeds PixiJS source here -->"
+    if pixi_marker in html:
+        bundle_path = a.game.parent / "pixi21.bundle.js"
+        if not bundle_path.exists():
+            raise SystemExit("PixiJS-Bundle fehlt. Zuerst npm run build:pixi21 ausführen.")
+        bundle = bundle_path.read_text(encoding="utf-8")
+        if not bundle.strip() or "</script" in bundle.lower():
+            raise SystemExit("PixiJS-Bundle ist leer oder kann nicht sicher eingebettet werden.")
+        html = html.replace(pixi_marker, "<script>\n" + bundle + "\n</script>")
     raw = html.encode("utf-8")
     if meta(html, "cx-web-version", "") != a.version:
         raise SystemExit("Die Version in game.html passt nicht. Zuerst stamp_web_version.py ausführen.")
