@@ -36,6 +36,11 @@
 .editor-panel button:active{background:#806c42}
 .editor-footer button{flex:1;padding:4px}
 .editor-panel small{display:block;font-size:10px;line-height:1.35;color:#c2bba7;margin-top:6px}
+
+#city2Switch{font-size:15px;font-weight:800;letter-spacing:.03em}
+#city2Switch.active{color:#1b2c25;background:#dbb97b;border-color:#f6dda0}
+body.city2-active .cx-building-targets{display:none!important}
+body.city2-active #editorToggle{opacity:.4;pointer-events:none}
 </style>
   <title>COLONIA XANTEN · 150 n. Chr. · v1.0</title>
 </head>
@@ -54,6 +59,7 @@
       <button type="button" id="zoomOut" aria-label="Verkleinern">−</button>
       <button type="button" id="resetView" aria-label="Ansicht zentrieren">⌖</button>
       <button type="button" id="motionToggle" aria-label="Animation ausschalten" title="Animation an/aus">◉</button>
+      <button type="button" id="city2Switch" aria-label="Neue Stadtansicht einschalten" title="Stadt 2.0 testen">2.0</button>
       <button type="button" id="editorToggle" aria-label="Kartenbearbeitung einschalten" title="Gebäude anordnen">✎</button>
     </div>
     <div class="map-help" id="mapHelp">Schiffe fahren · Bürger bewegen sich · Gebäude antippen</div>
@@ -452,6 +458,7 @@ function tick(){
 // Stylized painted overhead city diagram, intentionally NOT an archaeological map.
 const WORLD_W=1570,WORLD_H=930;
 const RIVER_OFFSET=380;
+let city2Mode=false;
 let vw=400,vh=600,base=1,zoom=1,panX=52,panY=0,dpr=1;
 let visualSeconds=0,lastFrame=0,lastPaint=0,rafId=0;
 const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false;
@@ -659,7 +666,7 @@ for(const [id,src] of Object.entries({
 })){
  const img=new Image();
  cityArt[id]={img,ready:false};
- img.onload=()=>{cityArt[id].ready=true;staticKey='';draw()};
+ img.onload=()=>{cityArt[id].ready=true;staticKey='';if(typeof city2CacheKey!=='undefined')city2CacheKey='';draw()};
  img.onerror=()=>{cityArt[id].ready=false};
  if(src.startsWith('data:image/webp;base64,'))img.src=src;
 }
@@ -676,7 +683,7 @@ for(const [id,url,cellW,cellH,cols] of [
  const img=new Image();
  const entry={img,ready:false,cellW,cellH,cols};
  romanAtlas[id]=entry;
- img.onload=()=>{entry.ready=true;staticKey='';draw()};
+ img.onload=()=>{entry.ready=true;staticKey='';if(typeof city2CacheKey!=='undefined')city2CacheKey='';draw()};
  img.onerror=()=>{entry.ready=false};
  if(url.startsWith('data:image/webp;base64,'))img.src=url;
 }
@@ -726,6 +733,7 @@ function refreshMapEditor(){
  editorPanel.querySelectorAll('[data-needs-selection]').forEach(el=>{el.disabled=!d});
 }
 function startMapEditor(){
+ if(city2Mode)city2Switch();
  if(regionMode)setRegionMode(false);
  editorMode=true;editorSelected=null;editorPanel.hidden=false;
  closeSheet();invalidateMapLayout();refreshMapEditor();
@@ -1141,7 +1149,279 @@ function clampPan(){const sc=base*zoom;if(!sc)return;const hw=vw/2/sc,hh=vh/2/sc
 // Zwei Ebenen: Landschaft und Stadt werden nur bei Verschieben, Zoomen oder Jahreszeitwechsel neu gezeichnet;
 // pro Animationsframe kommen nur Wasser, Schiffe, Bürger, Rauch, Warnungen und Nacht dazu.
 const staticCanvas=document.createElement('canvas');let staticKey='';
-function draw(){if(regionMode){drawRegion();return}if(!vw||!vh||document.hidden)return;
+
+// STADT 2.0: unabhängiger 2,5D-Prototyp mit fester Blickrichtung.
+// Die Simulation, Hauptkarte, Spielstände und nativen App-Funktionen bleiben erhalten.
+const CITY2_W=1600,CITY2_H=940;
+let city2Zoom=1.7,city2PanX=0,city2PanY=0,city2CacheKey='';
+const city2Ground=document.createElement('canvas');
+const city2Models=[
+ {id:'amphitheater',x:78,y:225,w:250,h:183,asset:'amphitheater'},
+ {id:'lager',x:378,y:203,w:192,h:155,asset:'buildings',cell:12},
+ {id:'tor',x:731,y:73,w:173,h:141,asset:'buildings',cell:14},
+ {id:'forum',x:530,y:336,w:330,h:254,asset:'forum'},
+ {id:'thermen',x:986,y:200,w:265,h:190,asset:'thermen'},
+ {id:'herberge',x:1265,y:211,w:180,h:148,asset:'buildings',cell:5},
+ {id:'werkstatt',x:1268,y:408,w:183,h:147,asset:'buildings',cell:7},
+ {id:'tempel',x:1004,y:547,w:195,h:158,asset:'buildings',cell:13},
+ {id:'insula',x:315,y:588,w:190,h:168,asset:'buildings',cell:3},
+ {id:'wasser',x:490,y:614,w:128,h:122,asset:'buildings',cell:15},
+ {id:'hafen',x:1299,y:620,w:234,h:196,asset:'harbor',cell:0}
+];
+const city2StaticHouses=(()=>{
+ const houses=[],cols=[92,281,458,639,827,1025,1211],rows=[236,417,607,779];
+ for(let r=0;r<rows.length;r++)for(let c=0;c<cols.length;c++){
+  const x=cols[c]+(r%2)*12,y=rows[r]+((c%3)*6),w=132+(c%3)*15,h=108+(r%3)*8;
+  // Bebauung dicht, aber mit echten öffentlichen Plätzen und Hauptgebäuden.
+  if(city2Models.some(m=>x<m.x+m.w+22&&x+w>m.x-22&&y<m.y+m.h+18&&y+h>m.y-24))continue;
+  if((c===4&&r===1)||(c===5&&r===3))continue;
+  houses.push({id:'house-'+r+'-'+c,x,y,w,h,asset:'buildings',cell:(c*3+r*2)%5,decorative:true});
+ }
+ return houses;
+})();
+const city2Renderable=[...city2StaticHouses,...city2Models].sort((a,b)=>(a.y+a.h)-(b.y+b.h));
+const city2ById=Object.fromEntries(city2Models.map(m=>[m.id,m]));
+function city2Scale(){return Math.min(vw/CITY2_W,vh/CITY2_H)*city2Zoom}
+function city2XY(x,y){
+ const sc=city2Scale();
+ return {x:vw/2+city2PanX+(x-CITY2_W/2)*sc,y:vh/2+city2PanY+(y-CITY2_H/2)*sc};
+}
+function city2FromPointer(clientX,clientY){
+ const bounds=canvas.getBoundingClientRect(),sc=city2Scale();
+ return {x:CITY2_W/2+(clientX-bounds.left-vw/2-city2PanX)/sc,y:CITY2_H/2+(clientY-bounds.top-vh/2-city2PanY)/sc};
+}
+function city2ClampPan(){
+ const sc=city2Scale();
+ // Halte den Bildausschnitt nahe an der Landschaft, ohne wichtige Stadtteile zu verlieren.
+ const limX=(CITY2_W*sc+vw)*.54,limY=(CITY2_H*sc+vh)*.52;
+ city2PanX=Math.max(-limX,Math.min(limX,city2PanX));
+ city2PanY=Math.max(-limY,Math.min(limY,city2PanY));
+}
+function city2SetZoom(z,x=vw/2,y=vh/2){
+ const before=city2FromPointer(x+canvas.getBoundingClientRect().left,y+canvas.getBoundingClientRect().top);
+ city2Zoom=clamp(z,1,4.3);
+ const sc=city2Scale();
+ city2PanX=x-vw/2-(before.x-CITY2_W/2)*sc;
+ city2PanY=y-vh/2-(before.y-CITY2_H/2)*sc;
+ city2ClampPan();draw();
+}
+function city2Pick(clientX,clientY){
+ const p=city2FromPointer(clientX,clientY);
+ for(let i=city2Models.length-1;i>=0;i--){
+  const m=city2Models[i],pad=8;
+  if(p.x>=m.x-pad&&p.x<=m.x+m.w+pad&&p.y>=m.y-pad&&p.y<=m.y+m.h+pad)return m.id;
+ }
+ return null;
+}
+function city2Switch(){
+ city2Mode=!city2Mode;
+ if(editorMode)stopMapEditor();
+ $('city2Switch').classList.toggle('active',city2Mode);
+ $('city2Switch').textContent=city2Mode?'1.0':'2.0';
+ $('city2Switch').title=city2Mode?'Zur bewährten Stadtkarte':'Stadt 2.0 testen';
+ document.body.classList.toggle('city2-active',city2Mode);
+ if(typeof buildingTargets!=='undefined')buildingTargets.style.display=city2Mode?'none':'block';
+ if(regionMode)setRegionMode(false);
+ $('mapHelp').textContent=city2Mode?'STADT 2.0 · Gebäude antippen · Wischen zum Verschieben':'Schiffe fahren · Bürger bewegen sich · Gebäude antippen';
+ city2CacheKey='';staticKey='';draw();
+ toast(city2Mode?'Stadt 2.0 Prototyp aktiviert':'Bewährte Stadtkarte wiederhergestellt');
+}
+function city2TexturedArea(x,y,w,h,color){
+ fillRect(x,y,w,h,color);
+ if(cityArt.paving?.ready){
+  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+  const pattern=ctx.createPattern(cityArt.paving.img,'repeat');
+  if(pattern){ctx.globalAlpha=.58;ctx.fillStyle=pattern;ctx.fillRect(x,y,w,h)}
+  ctx.restore();
+ }
+}
+function city2PaintGround(){
+ ctx.fillStyle='#9c946b';ctx.fillRect(0,0,CITY2_W,CITY2_H);
+ // Fernblick und Vegetation hinter der Stadtmauer.
+ const sky=ctx.createLinearGradient(0,0,0,230);
+ sky.addColorStop(0,'#8da0a1');sky.addColorStop(.48,'#a3a881');sky.addColorStop(1,'#a0a075');
+ ctx.fillStyle=sky;ctx.fillRect(0,0,CITY2_W,240);
+ for(let i=0;i<90;i++){
+  const x=(i*137)%CITY2_W,y=56+random(i,14)*168,r=8+random(i,89)*15;
+  tree(x,y,r);
+ }
+ // Städteboden und Hafen, rechte Wasserseite wie im Referenzbild.
+ city2TexturedArea(8,155,1346,785,'#b9a17b');
+ const river=ctx.createLinearGradient(1270,0,1590,0);
+ river.addColorStop(0,'#517d80');river.addColorStop(1,'#28566c');
+ ctx.fillStyle=river;
+ ctx.beginPath();ctx.moveTo(1410,330);ctx.lineTo(1600,287);ctx.lineTo(1600,940);ctx.lineTo(1320,940);ctx.lineTo(1305,660);ctx.closePath();ctx.fill();
+ // Geometrisch zusammenhängende Straßen- und Platzoberfläche.
+ for(const y of [205,385,567,751,881])city2TexturedArea(20,y,CITY2_W-270,43,'#bba788');
+ for(const x of [215,445,680,913,1160,1290])city2TexturedArea(x,195,36,730,'#bba788');
+ city2TexturedArea(476,340,432,300,'#d0b994');
+ city2TexturedArea(1170,520,181,325,'#bda887');
+ // Randkanten an Wegen zur besseren räumlichen Lesbarkeit.
+ ctx.strokeStyle='rgba(77,64,44,.35)';ctx.lineWidth=3;
+ for(const y of [205,385,567,751,881]){
+  ctx.beginPath();ctx.moveTo(20,y);ctx.lineTo(1300,y);ctx.stroke();
+ }
+ // Zusammenhängende nördliche Stadtmauer mit Torlücke.
+ fillRect(15,150,700,21,'#8e8469');fillRect(910,150,445,21,'#8e8469');
+ for(let x=22;x<1350;x+=22){
+  if(x>722&&x<908)continue;
+  fillRect(x,135,12,18,'#cec3a0');
+ }
+ for(const x of [52,315,593,1004,1250]) {
+  fillRect(x,127,42,52,'#9b896e');
+  fillRect(x+7,116,27,13,'#bdb095');
+  for(let t=0;t<4;t++)fillRect(x+t*10,114,7,9,'#d7c6a7');
+ }
+ // Kai am rechten Ufer mit klarer Wasserlinie.
+ polygon([[1299,555],[1411,514],[1438,840],[1320,907]],'#8b795b','#5f5b4b');
+ line([[1411,514],[1438,840]],'#d5c2a0',6);
+ for(const y of [580,706,828]){
+  fillRect(1353,y,139,12,'#987652');
+  for(const x of [1370,1412,1454])fillRect(x,y+10,6,21,'#665039');
+ }
+ // Baumbestand und öffentliche Grünstreifen.
+ for(let i=0;i<38;i++){
+  const x=18+(i*151)%1260,y=217+(i*211)%700;
+  if(x>490&&x<930&&y>346&&y<640)continue;
+  if(random(i,5)>.45)tree(x,y,6+random(i,8)*10);
+ }
+ // Hausparzellen nicht mehr als braune Quadrate, sondern schlichte Innenhöfe.
+ for(const m of city2StaticHouses){
+  ctx.fillStyle='rgba(209,189,151,.28)';
+  ctx.fillRect(m.x+6,m.y+m.h*.64,m.w-12,m.h*.28);
+ }
+}
+function city2PaintModel(m){
+ const sx=m.x,sy=m.y,sw=m.w,sh=m.h;
+ ctx.save();ctx.fillStyle='rgba(43,39,25,.18)';
+ ctx.beginPath();ctx.ellipse(sx+sw*.55,sy+sh*.92,sw*.4,Math.max(5,sh*.11),0,0,Math.PI*2);ctx.fill();ctx.restore();
+ let done=false;
+ if(m.asset==='buildings')done=drawRomanAtlas('buildings',m.cell,sx,sy,sw,sh);
+ else if(m.asset==='harbor')done=drawRomanAtlas('harbor',m.cell,sx,sy,sw,sh);
+ else if(m.asset==='forum'||m.asset==='thermen'||m.asset==='amphitheater'){
+  const entry=buildingSprites[m.asset];
+  if(entry?.ready){ctx.drawImage(entry.img,sx,sy,sw,sh);done=true}
+ }
+ if(!done){
+  ctx.save();ctx.fillStyle='#d7b891';ctx.fillRect(sx+8,sy+sh*.32,sw-16,sh*.6);
+  polygon([[sx,sy+sh*.3],[sx+sw*.5,sy],[sx+sw,sy+sh*.3]],'#b66a47','#885a3d');
+  ctx.restore();
+ }
+}
+function city2Actors(){
+ const items=[],day=lightingHour()>=6&&lightingHour()<=21;
+ // Fußgänger ausschließlich auf gewählten Pflasterwegen und mit festem Tiefenanker.
+ const walks=[
+  {y:402,x0:55,x1:1270},{y:586,x0:80,x1:1280},
+  {y:771,x0:70,x1:1230},{y:897,x0:65,x1:1270}
+ ];
+ if(day&&motionEnabled)for(let i=0;i<39;i++){
+  const route=walks[i%walks.length];
+  const p=((visualSeconds/(85+(i%5)*13)+i*.141)%1);
+  const reversed=i%2===1;
+  const x=reversed?route.x1-(route.x1-route.x0)*p:route.x0+(route.x1-route.x0)*p,y=route.y;
+  // Abstand zu großen Gebäuden / Platzobjekten.
+  if(city2Models.some(m=>x>m.x+18&&x<m.x+m.w-18&&y>m.y+m.h*.66&&y<m.y+m.h+14))continue;
+  items.push({kind:'citizen',x,y,role:[0,2,4,8,9,5,3,1][i%8],face:reversed?Math.PI:0,phase:i*.19,size:i%6===4?.75:1});
+ }
+ if(motionEnabled){
+  for(let i=0;i<3;i++){
+   const t=(visualSeconds/(42+i*17)+i*.32)%1;
+   const y=540+t*395,x=1469+Math.sin(t*7+i)*17;
+   items.push({kind:'boat',x,y});
+  }
+  for(let i=0;i<2;i++){
+   const t=(visualSeconds/(90+i*17)+i*.31)%1;
+   items.push({kind:'cart',x:250+t*760,y:767});
+  }
+ }
+ return items;
+}
+function city2DrawActor(a){
+ if(a.kind==='boat'){
+  const w=76,h=62;
+  if(!drawRomanAtlas('harbor',3,a.x-w/2,a.y-h/2,w,h)){
+   ctx.fillStyle='#634a31';ctx.fillRect(a.x-24,a.y-8,48,14);
+  }
+  line([[a.x-38,a.y+17],[a.x-27,a.y+20],[a.x-13,a.y+17]],'#b3ded8',1.5);
+  return;
+ }
+ if(a.kind==='cart'){
+  ctx.save();ctx.translate(a.x,a.y);
+  if(!drawRomanAtlas('harbor',5,-22,-32,44,35)){
+   fillRect(-18,-12,36,18,'#866547');
+  }ctx.restore();return;
+ }
+ const art=romanAtlas.people;
+ const w=a.role===9?15:22,h=a.role===9?27:37;
+ ctx.save();ctx.translate(a.x,a.y);
+ if(a.face===Math.PI)ctx.scale(-1,1);
+ ellipse(0,1,8,3,'rgba(45,40,33,.25)');
+ if(art?.ready){
+  const idx=a.role;
+  ctx.drawImage(art.img,(idx%4)*64,Math.floor(idx/4)*88,64,88,
+   -w/2,-h-Math.abs(Math.sin(visualSeconds*6+a.phase))*0.8,w,h);
+ }else{
+  const walk=cityArt.citizens;
+  if(walk?.ready){
+   const frame=Math.floor((visualSeconds*6+a.phase*8)%8);
+   ctx.drawImage(walk.img,frame*64,0,64,80,-w/2,-h,w,h);
+  }
+ }ctx.restore();
+}
+function city2PaintScene(){
+ const entities=city2Renderable.map(m=>({kind:'building',model:m,y:m.y+m.h}));
+ const actors=city2Actors().map(a=>({...a,y:a.y}));
+ entities.push(...actors);
+ entities.sort((a,b)=>a.y-b.y);
+ for(const e of entities){
+  if(e.kind==='building')city2PaintModel(e.model);
+  else city2DrawActor(e);
+ }
+ // Dezente Wasserlinien am Rhein.
+ ctx.save();ctx.globalAlpha=.28;
+ for(let j=0;j<15;j++){
+  const x=1430+(j%3)*41,y=330+((visualSeconds*8+j*67)%600);
+  line([[x,y],[x+20,y-3]],'#c7e5dd',1.5);
+ }
+ ctx.restore();
+ // Tageszeit aus dem aktuellen Spielzustand verwenden.
+ const hour=lightingHour();
+ if(hour>=19||hour<6){
+  ctx.fillStyle='rgba(16,27,46,.35)';ctx.fillRect(0,0,CITY2_W,CITY2_H);
+ }
+}
+function city2Draw(){
+ if(!vw||!vh||document.hidden)return;
+ city2ClampPan();
+ const key=[canvas.width,canvas.height,city2Zoom.toFixed(3),
+  city2PanX.toFixed(2),city2PanY.toFixed(2),liveClock.season].join('|');
+ const sc=city2Scale();
+ if(key!==city2CacheKey){
+  city2CacheKey=key;
+  if(city2Ground.width!==canvas.width||city2Ground.height!==canvas.height){
+   city2Ground.width=canvas.width;city2Ground.height=canvas.height;
+  }
+  const g=city2Ground.getContext('2d'),prior=ctx;
+  ctx=g;
+  try{
+   g.setTransform(dpr,0,0,dpr,0,0);
+   g.fillStyle='#637d70';g.fillRect(0,0,vw,vh);
+   g.translate(vw/2+city2PanX,vh/2+city2PanY);
+   g.scale(sc,sc);g.translate(-CITY2_W/2,-CITY2_H/2);
+   city2PaintGround();
+  }finally{ctx=prior}
+ }
+ ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(city2Ground,0,0);
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ ctx.save();
+ ctx.translate(vw/2+city2PanX,vh/2+city2PanY);
+ ctx.scale(sc,sc);ctx.translate(-CITY2_W/2,-CITY2_H/2);
+ city2PaintScene();
+ ctx.restore();
+}
+
+function draw(){if(regionMode){drawRegion();return}if(city2Mode){city2Draw();return}if(!vw||!vh||document.hidden)return;
  clampPan();
  const key=[canvas.width,canvas.height,zoom.toFixed(4),panX.toFixed(2),panY.toFixed(2),liveClock.season,layoutRevision].join('|');
  if(key!==staticKey){staticKey=key;if(staticCanvas.width!==canvas.width||staticCanvas.height!==canvas.height){staticCanvas.width=canvas.width;staticCanvas.height=canvas.height}
@@ -1150,8 +1430,8 @@ function draw(){if(regionMode){drawRegion();return}if(!vw||!vh||document.hidden)
 function resize(){const r=canvas.getBoundingClientRect();vw=r.width;vh=r.height;dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.round(vw*dpr));canvas.height=Math.max(1,Math.round(vh*dpr));base=Math.min(vw/950,vh/850);resizeRegion();draw()}
 function toWorld(cx,cy){return {x:(cx-vw/2-panX)/(base*zoom)+WORLD_W/2,y:(cy-vh/2-panY)/(base*zoom)+WORLD_H/2}}
 function setZoom(next,x=vw/2,y=vh/2){const before=toWorld(x,y);zoom=clamp(next,.65,3.1);const after=toWorld(x,y);panX+=(after.x-before.x)*base*zoom;panY+=(after.y-before.y)*base*zoom;draw()}
-function centerBuilding(id){if(regionMode)setRegionMode(false);const d=defs[id];zoom=Math.max(zoom,1.15);panX=-(d.x+RIVER_OFFSET+d.w/2-WORLD_W/2)*base*zoom;panY=-(d.y+d.h/2-WORLD_H/2)*base*zoom;draw()}
-$('zoomIn').onclick=()=>regionMode?regionZoomBy(1.28):setZoom(zoom*1.28);$('zoomOut').onclick=()=>regionMode?regionZoomBy(1/1.28):setZoom(zoom/1.28);$('resetView').onclick=()=>{if(regionMode){rZoom=1;rPanX=0;rPanY=0;drawRegion()}else{zoom=1;panX=52;panY=0;draw()}};
+function centerBuilding(id){if(regionMode)setRegionMode(false);if(city2Mode){const m=city2ById[id];if(m){const sc=city2Scale();city2PanX=-(m.x+m.w/2-CITY2_W/2)*sc;city2PanY=-(m.y+m.h/2-CITY2_H/2)*sc;city2Zoom=Math.max(city2Zoom,1.8);draw();return}}const d=defs[id];zoom=Math.max(zoom,1.15);panX=-(d.x+RIVER_OFFSET+d.w/2-WORLD_W/2)*base*zoom;panY=-(d.y+d.h/2-WORLD_H/2)*base*zoom;draw()}
+$('zoomIn').onclick=()=>regionMode?regionZoomBy(1.28):city2Mode?city2SetZoom(city2Zoom*1.23):setZoom(zoom*1.28);$('zoomOut').onclick=()=>regionMode?regionZoomBy(1/1.28):city2Mode?city2SetZoom(city2Zoom/1.23):setZoom(zoom/1.28);$('resetView').onclick=()=>{if(regionMode){rZoom=1;rPanX=0;rPanY=0;drawRegion()}else if(city2Mode){city2Zoom=1.7;city2PanX=0;city2PanY=0;city2CacheKey='';draw()}else{zoom=1;panX=52;panY=0;draw()}};
 // A separate DOM hit target sits directly over each drawn building.
 // Buttons give Android WebView a real touch target; the same pointer gesture
 // handler handles both canvas and buttons, so dragging and pinch zoom still work.
@@ -1167,6 +1447,7 @@ for(const [id,d] of Object.entries(editableItems)){
 }
 let targetLayoutKey='';
 function updateBuildingTargets(){
+ if(city2Mode){buildingTargets.style.display='none';return}
  const key=[vw,vh,panX.toFixed(2),panY.toFixed(2),zoom.toFixed(4),regionMode,editorMode,layoutRevision].join('|');
  if(key===targetLayoutKey)return;
  targetLayoutKey=key;
@@ -1214,7 +1495,7 @@ inputRoot.addEventListener('pointerdown',e=>{
  try{e.target.setPointerCapture(e.pointerId)}catch{}
  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
  if(pointers.size===1)gesture={startX:e.clientX,startY:e.clientY,moved:false,pinch:false,editorDragId:editorMode?(e.target.closest?.('.cx-building-target')?.dataset.building||buildingAtScreen(e.clientX,e.clientY)):null};
- else if(pointers.size===2&&gesture){gesture.pinch=true;gesture.moved=true;gesture.distance=distance();gesture.initialZoom=zoom}
+ else if(pointers.size===2&&gesture){gesture.pinch=true;gesture.moved=true;gesture.distance=distance();gesture.initialZoom=zoom;gesture.initialCity2Zoom=city2Zoom}
 });
 inputRoot.addEventListener('pointermove',e=>{
  if(!pointers.has(e.pointerId)||!gesture)return;
@@ -1223,11 +1504,13 @@ inputRoot.addEventListener('pointermove',e=>{
  const r=canvas.getBoundingClientRect();
  if(pointers.size===2){
   const d=distance(),pts=[...pointers.values()];
-  setZoom(gesture.initialZoom*d/Math.max(1,gesture.distance),(pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top);
+  if(city2Mode)city2SetZoom((gesture.initialCity2Zoom||city2Zoom)*d/Math.max(1,gesture.distance),(pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top);
+  else setZoom(gesture.initialZoom*d/Math.max(1,gesture.distance),(pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top);
  }else if(pointers.size===1){
   if(Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)>12)gesture.moved=true;
   if(gesture.moved){
-   if(editorMode&&gesture.editorDragId&&editableItems[gesture.editorDragId]){
+   if(city2Mode){city2PanX+=e.clientX-prev.x;city2PanY+=e.clientY-prev.y;city2ClampPan();draw()}
+   else if(editorMode&&gesture.editorDragId&&editableItems[gesture.editorDragId]){
     const id=gesture.editorDragId,p=mapPose(id),scale=base*zoom;
     p.dx=Math.max(-250,Math.min(250,p.dx+(e.clientX-prev.x)/scale));
     p.dy=Math.max(-250,Math.min(250,p.dy+(e.clientY-prev.y)/scale));
@@ -1237,6 +1520,7 @@ inputRoot.addEventListener('pointermove',e=>{
  }
 });
 function buildingAtScreen(clientX,clientY){
+ if(city2Mode)return city2Pick(clientX,clientY);
  const bounds=canvas.getBoundingClientRect();
  const px=clientX-bounds.left,py=clientY-bounds.top;
  const scale=base*zoom;
@@ -1291,7 +1575,7 @@ inputRoot.addEventListener('touchend',e=>{
  openMapBuilding(buildingAtScreen(t.clientX,t.clientY),'touchend');
 },{passive:true});
 inputRoot.addEventListener('touchcancel',()=>{nativeTouchStart=null},{passive:true});
-canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();setZoom(zoom*(e.deltaY<0?1.12:.89),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();if(city2Mode)city2SetZoom(city2Zoom*(e.deltaY<0?1.12:.89),e.clientX-r.left,e.clientY-r.top);else setZoom(zoom*(e.deltaY<0?1.12:.89),e.clientX-r.left,e.clientY-r.top)},{passive:false});
 
 $('editorToggle').onclick=()=>editorMode?stopMapEditor():startMapEditor();
 $('editorDone').onclick=stopMapEditor;
@@ -1299,6 +1583,7 @@ $('editorSave').onclick=()=>{persistMapLayout();toast('Kartenanordnung gespeiche
 $('editorResetAll').onclick=()=>{if(!confirm('Alle Gebäude-Positionen und Drehungen zurücksetzen?'))return;for(const id of Object.keys(mapLayout))delete mapLayout[id];persistMapLayout();invalidateMapLayout();refreshMapEditor();toast('Alle Gebäude zurückgesetzt.')};
 editorPanel.querySelectorAll('[data-map-edit]').forEach(b=>b.onclick=()=>adjustMapPose(b.dataset.mapEdit));
 refreshMapEditor();
+$('city2Switch').onclick=city2Switch;
 window.addEventListener('resize',resize);if('ResizeObserver' in window)new ResizeObserver(resize).observe(canvas);
 
 // REGIO RHENI: offline illustrated historical landscape; modern georeferencing is approximate.
