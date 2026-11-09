@@ -487,19 +487,14 @@ function drawGoodsCaravan(){
 }
 function drawWorkingPopulation(){
  if(!motionEnabled)return;
- const working=lightingHour()>=6&&lightingHour()<=19;
- const commutes=[
-  [[950,735],[950,508],[940,508],[940,380]],
-  [[950,735],[950,508],[840,508],[840,628]],
-  [[950,735],[950,508],[720,508],[720,383]],
-  [[820,260],[820,276],[820,392],[607,392],[607,470]],
-  [[250,540],[262,540],[262,508],[457,508],[457,260]],
-  [[628,176],[628,392],[607,392],[607,470]],
-  [[457,260],[457,276],[377,276],[377,392],[350,392]],
-  [[470,748],[470,740],[607,740],[607,470]]
- ];
- const workColors=['#6c4b3e','#6e7f66','#8b6c4f','#807493'];
- for(let i=0;i<20;i++){const route=commutes[i%commutes.length];const phase=(visualSeconds/(28+(i%6)*4)+i*.129)%1;const p=pointOnPath(route,working?phase:1-phase);drawCitizenFigure(p.x,p.y,workColors[i%workColors.length],p.angle,1.02,(visualSeconds*1.6+i*.31)%1)}
+ const daytime=lightingHour()>=6&&lightingHour()<=19;
+ // Auf parallelen, durch die Straßenachsen gedeckten Wegen zur Arbeit.
+ const rows=[276,392,508,624],colors=['#6c4b3e','#6e7f66','#8b6c4f','#807493'];
+ for(let i=0;i<14;i++){
+  const y=rows[i%rows.length],p=(visualSeconds/(88+i%5*13)+i*.193)%1;
+  const x=daytime?(i%2?1043-p*779:263+p*779):(i%2?263+p*779:1043-p*779);
+  drawCitizenFigure(x,y,colors[i%colors.length],i%2?Math.PI:0,.96,i*.29);
+ }
 }
 function drawPortSignal(){
  if(!state.portQueue.length)return;
@@ -624,6 +619,20 @@ for(const [id,source] of Object.entries(buildingSpriteSources)){
  // Keine Anfrage für Platzhalter im lokalen Quellcode.
  if(source.startsWith('data:image/webp;base64,'))img.src=source;
 }
+
+// Animationsgrafiken bleiben Teil des signierten HTML-Downloads und funktionieren offline.
+const cityArt={};
+for(const [id,src] of Object.entries({
+ citizens:'__CX_SPRITE_CITIZENS__',
+ paving:'__CX_SPRITE_PAVING__'
+})){
+ const img=new Image();
+ cityArt[id]={img,ready:false};
+ img.onload=()=>{cityArt[id].ready=true;staticKey='';draw()};
+ img.onerror=()=>{cityArt[id].ready=false};
+ if(src.startsWith('data:image/webp;base64,'))img.src=src;
+}
+
 function drawBuildingSprite(id,d){
  const entry=buildingSprites[id];if(!entry?.ready)return false;
  const {x,y,w,h}=d,img=entry;
@@ -713,20 +722,29 @@ function drawNewCityBlock(x,y,row,col){
  }
 }
 function drawCityPavement(x,y,w,h,vertical=false){
- fillRect(x,y,w,h,'#b9ab8e');
- // Unregelmäßige kleine Kalksteinplatten; die statische Ebene wird gecacht.
- const stepX=vertical?8:10,stepY=vertical?10:8;
- for(let row=0,py=y;py<y+h;row++,py+=stepY){
-  const offset=(row%2)*stepX*.5;
-  for(let px=x-offset;px<x+w;px+=stepX){
-   const xx=Math.max(x,px),ww=Math.min(px+stepX-1,x+w)-xx,hh=Math.min(stepY-1,y+h-py);
-   if(ww<=0||hh<=0)continue;
-   const shade=random(px*.1,py*.13);
-   fillRect(xx,py,ww,hh,shade>.75?'#d6c6a5':shade>.35?'#c8b899':'#b6a58a');
-   if(shade>.83){line([[xx+1,py+hh*.6],[xx+ww*.6,py+1]],'rgba(112,96,70,.2)',.55)}
+ // Die reale römische Pflaster-Grafik wird als Textur innerhalb der
+ // vorhandenen Straßenpolygonfläche gekachelt, ohne das Touch-Koordinatensystem zu ändern.
+ fillRect(x-1,y-1,w+2,h+2,'#94836c');
+ fillRect(x,y,w,h,'#c5b69a');
+ const paving=cityArt.paving;
+ if(paving?.ready){
+  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+  const pattern=ctx.createPattern(paving.img,'repeat');
+  if(pattern){ctx.globalAlpha=.96;ctx.fillStyle=pattern;ctx.fillRect(x,y,w,h)}
+  ctx.restore();
+ }else{
+  const sx=vertical?8:10,sy=vertical?10:8;
+  for(let iy=y;iy<y+h;iy+=sy)for(let ix=x;ix<x+w;ix+=sx){
+   const shade=random(ix*.17,iy*.17);
+   fillRect(ix,iy,Math.min(sx-1,x+w-ix),Math.min(sy-1,y+h-iy),
+    shade>.55?'#cbb99a':'#b7a789');
   }
  }
- ctx.strokeStyle='#9b8e75';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,w-1,h-1);
+ // Flache Straßenränder mit Schatten machen den Belag räumlicher,
+ // ohne den Kartenprojektionswinkel der klickbaren Gebäude zu verändern.
+ ctx.strokeStyle='#78694e';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,w-1,h-1);
+ ctx.strokeStyle='rgba(255,236,193,.55)';ctx.lineWidth=1;
+ ctx.beginPath();ctx.moveTo(x+1,y+1);ctx.lineTo(x+w-1,y+1);ctx.moveTo(x+1,y+1);ctx.lineTo(x+1,y+h-1);ctx.stroke();
 }
 function drawStaticMap(){
 if(!groundLayer)buildGround();
@@ -792,32 +810,63 @@ function drawWarnings(){
 }
 function drawWake(x,y,south){ctx.save();ctx.globalAlpha=.42;for(let k=0;k<3;k++){const yy=y+(south?-1:1)*(34+k*10);line([[x-23-k*2,yy],[x,yy+4],[x+23+k*2,yy]],'#e3f3e7',1.6)}ctx.restore()}
 function pointOnPath(points,t){let lengths=[],total=0;for(let i=0;i<points.length-1;i++){const dx=points[i+1][0]-points[i][0],dy=points[i+1][1]-points[i][1],len=Math.hypot(dx,dy);lengths.push(len);total+=len}let dist=((t%1)+1)%1*total;for(let i=0;i<lengths.length;i++){if(dist<=lengths[i]||i===lengths.length-1){const a=points[i],b=points[i+1],f=Math.min(1,lengths[i]?dist/lengths[i]:0);return{x:a[0]+(b[0]-a[0])*f,y:a[1]+(b[1]-a[1])*f,angle:Math.atan2(b[1]-a[1],b[0]-a[0])}}dist-=lengths[i]}const last=points[points.length-1];return{x:last[0],y:last[1],angle:0}}
+// Straßenachsen der bestehenden, anklickbaren Karte. Die Figuren laufen nur
+// entlang sichtbarer Pflasterstrecken und nie diagonal durch einen Wohnblock.
+const CITY_ROADS_X=[263,378,493,608,723,838,953,1068];
+const CITY_ROADS_Y=[160,276,392,508,624,740];
+function pedestrianOnStreet(x,y){
+ if(x<240||x>1060||y<146||y>811)return false;
+ const alongX=CITY_ROADS_X.some(v=>Math.abs(x-v)<9);
+ const alongY=CITY_ROADS_Y.some(v=>Math.abs(y-v)<9);
+ if(!alongX&&!alongY)return false;
+ for(const d of Object.values(defs)){
+  // Fassaden stehen auch über ihren Grundriss hinaus, Köpfe benötigen Abstand.
+  if(x>d.x-4&&x<d.x+d.w+4&&y>d.y-4&&y<d.y+d.h+10)return false;
+ }
+ return true;
+}
 function drawCitizenFigure(x,y,color,angle=0,scale=1,phase=0,activity='walk'){
- // Richtungsabhängiger Gang: Arme und Beine schwingen entgegengesetzt.
- // Keine Bild-Dateien pro Bürger und keine zusätzlichen DOM-Elemente.
- const moving=activity==='walk'&&motionEnabled;
- const stride=moving?Math.sin(phase*2*Math.PI):0;
- const lift=moving?Math.abs(Math.cos(phase*2*Math.PI))*.9:0;
- ctx.save();ctx.translate(x,y);ctx.rotate(angle+Math.PI/2);ctx.scale(scale,scale);
- ellipse(1,6,5,2.1,'#342f2855');
- const yBob=moving?-lift*.45:0;
- ctx.translate(0,yBob);
- // Beide Beine und gegenläufige Armbewegungen, Sandalen, Oberkörper.
- line([[-1,3],[-1.7+stride*2.5,5.2],[-2.3+stride*3.2,8]],'#554638',1.75);
- line([[1,3],[1.7-stride*2.5,5.2],[2.3-stride*3.2,8]],'#65513e',1.75);
- line([[-3,-1],[-3.8-stride*2.7,2.5]],'#d2aa82',1.65);
- line([[3,-1],[3.8+stride*2.7,2.5]],'#d2aa82',1.65);
- polygon([[-3.5,-2.5],[3.5,-2.5],[3,4],[-3,4]],color);
- line([[-2.7,1],[2.7,1]],'#a38a69',.7);
- ellipse(0,-4.3,2.4,2.8,'#dfbc93');
- ctx.restore();
+ if(!pedestrianOnStreet(x,y))return;
+ const art=cityArt.citizens;
+ const walking=activity==='walk'&&motionEnabled;
+ if(art?.ready){
+  const frame=walking?Math.floor((visualSeconds*6+phase*8)%8):0;
+  const h=23*scale,w=18*scale;
+  ctx.save();ctx.translate(x,y);
+  // Figur bleibt immer aufrecht; Spiegelung nach links statt Rotation um 90°.
+  if(Math.cos(angle)<-.35)ctx.scale(-1,1);
+  ellipse(0,0,7*scale,2.4*scale,'rgba(36,32,25,.36)');
+  ctx.drawImage(art.img,frame*64,0,64,80,-w/2,-h+1,w,h);
+  ctx.restore();
+  return;
+ }
+ // Falls das Sprite nicht geladen werden kann, bleibt die bisherige Figur sichtbar.
+ ctx.save();ctx.translate(x,y);
+ ellipse(0,1,4.6*scale,2.1*scale,'rgba(36,32,25,.32)');
+ const step=walking?Math.sin(visualSeconds*9+phase*6.28)*2:0;
+ ctx.scale(scale,scale);line([[0,-10],[0,-3]],color,2.5);
+ line([[0,-4],[-2+step,0]],'#604b38',1.5);
+ line([[0,-4],[2-step,0]],'#604b38',1.5);
+ ellipse(0,-13,2.4,2.6,'#e0b892');ctx.restore();
 }
 function drawCitizens(){
- const routes=[[[262,160],[262,805]],[[377,160],[377,805]],[[607,160],[607,805]],[[837,160],[837,805]],[[952,160],[952,805]],[[244,160],[1058,160]],[[244,276],[1058,276]],[[244,392],[1058,392]],[[244,508],[1058,508]],[[244,624],[1058,624]],[[244,740],[1058,740]],[[244,508],[540,508],[540,470],[685,470]],[[244,508],[244,540],[250,540]],[[685,470],[720,470],[720,383]],[[540,470],[840,470],[840,628]],[[540,470],[950,470],[950,735]],[[540,470],[628,470],[628,176]],[[377,276],[457,276],[457,260]]];
+ // Waagerechte Wege: vollständig frei von diagonalen Abkürzungen.
+ const lanes=[160,392,508,624,740];
  const colors=['#9c5841','#e2d3b4','#58705c','#7b6554','#a29b80','#856f9d'];
- for(let i=0;i<36;i++){const route=routes[i%routes.length];const speed=20+(i%5)*4;const p=pointOnPath(route,(visualSeconds/speed+i*.117)%1);drawCitizenFigure(p.x,p.y,colors[i%colors.length],p.angle,0.95+(i%3)*0.06,(visualSeconds*1.75+i*.23)%1)}
- // Pack animals / small carts on the east-west market road
- for(let i=0;i<3;i++){const p=pointOnPath([[280,508],[980,508]],(visualSeconds/32+i*.31)%1);ctx.save();ctx.translate(p.x,p.y);fillRect(-8,-4,16,10,'#96744d');fillRect(-2,-11,8,7,'#b18b60');ellipse(-5,7,4,4,'#514a3c');ellipse(7,7,4,4,'#514a3c');ellipse(-11,-2,4,3,'#7a6446');ctx.restore()}
+ for(let i=0;i<32;i++){
+  const y=lanes[i%lanes.length];
+  const speed=75+(i%6)*13,phase=(visualSeconds/speed+i*.137)%1;
+  const x=i%2?1050-phase*790:259+phase*790;
+  drawCitizenFigure(x,y,colors[i%colors.length],i%2?Math.PI:0,.94+(i%3)*.05,i*.17);
+ }
+ // Wagen bleiben auf der Marktstraße und werden nur angezeigt, wo die Straße frei ist.
+ for(let i=0;i<3;i++){
+  const phase=(visualSeconds/66+i*.31)%1,x=275+phase*750,y=508;
+  if(!pedestrianOnStreet(x,y))continue;
+  ctx.save();ctx.translate(x,y);ellipse(1,3,12,3.5,'rgba(40,35,25,.29)');
+  fillRect(-8,-6,16,9,'#96744d');fillRect(-2,-12,8,7,'#b18b60');
+  ellipse(-6,5,3.5,3.5,'#514a3c');ellipse(6,5,3.5,3.5,'#514a3c');ctx.restore();
+ }
 }
 function drawSmoke(){
  const centers=[[948,302],[947,307],[707,310],[885,310],[842,198],[503,221]];
