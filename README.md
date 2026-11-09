@@ -28,41 +28,46 @@ Debug-APKs sind nur zum Testen geeignet. Die endgültige Release-APK braucht ein
 4. Verwende für **alle** kommenden Releases denselben Keystore und höhere `versionCode`-Werte.
 5. Offen ist noch ein **Spielstand-Export/Import**.
 
-## Updates
+## Updates über dasselbe öffentliche Repository
 
-Dieses Repo ist privat. Deshalb liefert ein **separates öffentliches Repo** (Standard: `MRFloyd84/colonia-xanten-releases`) die Updates aus. Die App liest dort nur `update.json`, die Spieldateien und die APKs. Der Quellcode bleibt privat, und in der App steckt kein Token.
+Dieses Repository ist **öffentlich**. App und Spiel laden die Versionsdatei direkt von
+`https://raw.githubusercontent.com/MRFloyd84/colonia-xanten/main/update.json`.
+Die veröffentlichten Spielversionen liegen unter `web/game-X.Y.Z.html`. Signierte APK-Dateien liegen unter **GitHub Releases**.
+**Kein separates Repository, kein privates Zugriffs-Token in der App und kein `RELEASES_TOKEN` nötig.**
 
-**So funktioniert es in der App**
+**Was passiert beim Öffnen?**
 
-- Beim Öffnen (und beim Zurückkehren in die App, höchstens stündlich) lädt `www/index.html` die Datei `update.json`.
-- **Spiel-Update** (neue `game.html`): Die App lädt die Datei im Hintergrund, prüft sie per SHA-256 und speichert sie. Beim nächsten Start ist sie aktiv, oder sofort über „Jetzt neu starten“. Spielstände bleiben erhalten.
-- Startet ein Update nicht sauber, fällt die App beim nächsten Start automatisch auf die zuletzt funktionierende Version zurück und lädt dieses Update nicht erneut.
-- **App-Update** (neue APK): Die App zeigt einen Hinweis mit Download-Knopf. Android fragt einmal nach „Installieren“.
-- Ohne Internet startet einfach die zuletzt geladene Version.
-- Unter **Info › Version & Updates** stehen die Versionen, die letzte Prüfung und ein Knopf „Nach Updates suchen“.
+- Die App liest `update.json`. Ein neueres Spiel wird heruntergeladen, per SHA-256 geprüft und beim nächsten Start aktiviert (optional sofort über „Jetzt neu starten“).
+- Bei einer neueren signierten APK erhält der Nutzer einen Download-Link. Die Installation erfordert Android-Bestätigung.
+- Offline wird die mitgelieferte oder zuletzt gespeicherte Version geladen.
+- Unter **Info → Version & Updates** können Versionen und der Status kontrolliert werden.
+- Der Updatekanal wird nur durch GitHub Actions mit dem zeitlich begrenzten `GITHUB_TOKEN` beschrieben.
 
-**Einmalig einrichten**
+**Wichtig für bestehende Installationen:** Die vorherige Debug-APK hatte die alte Updateadresse `colonia-xanten-releases` fest im App-Startcode. **Einmalig muss eine neue APK mit dieser Änderung installiert werden.** Ein Web-Update allein kann die Adresse in der bestehenden APK nicht austauschen. Der bisherige Debug-Schlüssel ist außerdem möglicherweise nicht mit späteren Builds identisch.
 
-1. Auf GitHub ein **öffentliches** Repo `colonia-xanten-releases` anlegen (gern mit README, muss aber nicht).
-2. Einen **Fine-grained Token** erstellen: *Settings › Developer settings › Personal access tokens › Fine-grained tokens › Generate new token*
-   - Repository access: *Only select repositories* › `colonia-xanten-releases`
-   - Permissions › Repository permissions › **Contents: Read and write** (sonst nichts)
-   - Ablaufdatum notieren und den Token rechtzeitig erneuern.
-3. In **diesem** Repo unter *Settings › Secrets and variables › Actions* das Secret **`RELEASES_TOKEN`** mit dem Token anlegen.
-4. Nur bei einem anderen Repo-Namen: unter *Variables* `RELEASES_REPO` = `BESITZER/REPO` setzen und `DEFAULT_UPDATE_URL` in `www/index.html` anpassen.
-5. Eine APK mit Update-Funktion bauen (Tag `v1.0.1`, siehe oben) und **einmal von Hand installieren**. Ab dann laufen Updates über die App.
+### Spielversion ohne neue APK veröffentlichen
 
-**Updates veröffentlichen**
+Nach dem Mergen der Updatefunktion nach `main`:
 
-- **Spiel-Update** (Änderungen an `www/game.html`): *Actions › Spiel-Update veröffentlichen › Run workflow*, Version (z. B. `1.0.2`) und optional eine kurze Notiz eintragen. Alternativ einen Tag pushen: `git tag web-v1.0.2 && git push origin web-v1.0.2`.
-- **App-Update** (Änderungen an `www/index.html`, Capacitor, Plugins, Symbol): wie bisher einen Tag `v1.0.3` pushen. Der Release-Workflow lädt die APK zusätzlich ins öffentliche Repo und trägt sie in `update.json` ein.
-- Spiel- und App-Updates teilen sich **eine** Versionsreihe, die immer steigen muss (1.0.1 → 1.0.2 → 1.0.3 …).
-- Braucht ein Spiel-Update eine neue Fähigkeit der Hülle, in `www/index.html` `SHELL_API` erhöhen und in `game.html` das Meta-Tag `cx-min-shell` entsprechend setzen. Ältere Apps zeigen dann „braucht eine neuere App-Version“.
+1. Im Code die Änderungen an `www/game.html` nach `main` committen.
+2. Unter **Actions → Spiel-Update veröffentlichen → Run workflow** die neue Versionsnummer eingeben (z. B. `1.0.2`), oder einen Tag `web-v1.0.2` auf dem gewünschten Commit erstellen.
+3. Der Workflow versioniert die Spieldatei, schreibt `web/game-1.0.2.html` und aktualisiert `update.json` auf `main`.
+4. Bei der nächsten Updateprüfung lädt die App die neue Version.
 
-**Hinweise**
+Spielversionen müssen streng steigen; veröffentlichte Versionen werden nicht überschrieben. GitHub Actions benötigt die Berechtigung **Contents: write**. Bei aktivem Branch-Schutz muss der Workflow Schreibzugriff auf `main` besitzen.
 
-- Debug-APKs (Actions-Artefakte) zeigen ebenfalls App-Update-Hinweise. Eine Release-APK ist aber anders signiert und lässt sich nicht über eine Debug-APK installieren.
-- Wer Schreibzugriff auf das öffentliche Update-Repo hat, bestimmt, welcher Spielcode in der App läuft. Den Token deshalb nur dort berechtigen und nirgends sonst verwenden.
+### Signierte Android-Release-APK
+
+Zum Erstellen von dauerhaft installierbaren Updates müssen die vier GitHub-Actions-Secrets eingerichtet sein:
+`SIGNING_KEYSTORE_BASE64`, `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`.
+Den **privaten Keystore nur lokal erzeugen**, sicher aufbewahren und nie in Git oder einen Chat senden.
+Alle künftigen Release-APKs müssen mit demselben Keystore signiert werden und einen steigenden Android-`versionCode` haben.
+
+Einen `vX.Y.Z`-Tag auf dem gewünschten `main`-Commit erstellen. Der Release-Workflow kompiliert und signiert die APK, veröffentlicht sie unter **Releases**, aktualisiert das Update-Manifest und legt die veröffentlichte Spielversion in `web/` ab.
+
+**Noch nicht freigegeben:** Die Release-Signierschlüssel fehlen, und der Update-Ablauf wurde bislang nicht Ende-zu-Ende auf dem Smartphone getestet. Ein Spielstand-Export/Import ist ebenfalls noch erforderlich, bevor eine Debug-App deinstalliert wird.
+
+**Sicherheit:** GitHub veröffentlicht ausführbaren Web-Spielcode. SHA-256 erkennt beschädigte Downloads, ist aber keine eigenständige Herausgeber-Signatur. Schreibzugriffe auf `main`, GitHub Actions und Releases absichern. Der veröffentlichte Spielcode ist öffentlich einsehbar.
 
 ## Lokal bauen
 
@@ -85,9 +90,9 @@ APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
 - `package.json`: Capacitor-Abhängigkeiten
 - `capacitor.config.json`: Android-App-ID
 - `.github/workflows/android-check.yml`: Test-APK
-- `.github/workflows/android-release.yml`: signierter Release-Build und Veröffentlichung im Update-Repo
-- `.github/workflows/web-update.yml`: Spiel-Update ohne neue APK veröffentlichen
-- `scripts/`: Versionierung, Signing-Konfiguration, `stamp_web_version.py` und `publish_update.py` für den Update-Kanal
+- `.github/workflows/android-release.yml`: signierter Release-Build und Veröffentlichung im selben Repository
+- `.github/workflows/web-update.yml`: Spiel-Update ohne neue APK auf `main` veröffentlichen
+- `scripts/`: Versionierung, Signing-Konfiguration und Veröffentlichung des Updatekanals
 
 ## Noch zu prüfen
 
