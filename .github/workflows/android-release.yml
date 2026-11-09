@@ -5,6 +5,9 @@ on:
     tags: ['v*']
 permissions:
   contents: write
+concurrency:
+  group: update-channel
+  cancel-in-progress: false
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -17,6 +20,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+
+      - name: Spielversion setzen
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+        run: python3 scripts/stamp_web_version.py "$APP_VERSION"
 
       - run: npm install --no-audit --no-fund
       - run: npx cap add android
@@ -61,3 +70,30 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" android/app/build/outputs/apk/release/*.apk --title "COLONIA XANTEN $GITHUB_REF_NAME" --generate-notes
+      # Öffentlicher Update-Kanal: APK + update.json, damit installierte Apps das Update finden.
+      - name: APK im öffentlichen Update-Repo veröffentlichen
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          RELEASES_REPO: ${{ vars.RELEASES_REPO || 'MRFloyd84/colonia-xanten-releases' }}
+          BUILD_CODE: ${{ github.run_number }}
+        run: |
+          if [ -z "$RELEASES_TOKEN" ]; then
+            echo "::warning::Secret RELEASES_TOKEN fehlt – APK wurde nicht im Update-Kanal veröffentlicht."
+            exit 0
+          fi
+          VERSION="${GITHUB_REF_NAME#v}"
+          APK="$RUNNER_TEMP/COLONIA-XANTEN-$VERSION.apk"
+          cp "$(ls android/app/build/outputs/apk/release/*.apk | head -n1)" "$APK"
+          GH_TOKEN="$RELEASES_TOKEN" gh release create "v$VERSION" "$APK" --repo "$RELEASES_REPO" --title "COLONIA XANTEN $VERSION" --notes "App-Version $VERSION (Build $BUILD_CODE)"
+          git clone "https://x-access-token:${RELEASES_TOKEN}@github.com/${RELEASES_REPO}.git" "$RUNNER_TEMP/channel"
+          python3 scripts/publish_update.py --channel "$RUNNER_TEMP/channel" --repo "$RELEASES_REPO" --version "$VERSION" --game www/game.html \
+            --apk-version "$VERSION" --apk-code "$BUILD_CODE" \
+            --apk-url "https://github.com/$RELEASES_REPO/releases/download/v$VERSION/COLONIA-XANTEN-$VERSION.apk" \
+            --notes "Neue App-Version $VERSION"
+          cd "$RUNNER_TEMP/channel"
+          git config user.name "colonia-update-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "App v$VERSION (Build $BUILD_CODE)"
+          git push origin HEAD:main

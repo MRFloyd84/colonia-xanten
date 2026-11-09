@@ -1,0 +1,63 @@
+name: Spiel-Update veröffentlichen
+# Veröffentlicht www/game.html als Spiel-Update im öffentlichen Update-Repo.
+# Die installierte App lädt es beim nächsten Öffnen automatisch – ohne neue APK.
+# Auslösen: Tag web-v1.0.2 pushen oder unter Actions „Run workflow“ mit Version.
+on:
+  push:
+    tags: ['web-v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Spielversion, z. B. 1.0.2 (muss höher sein als die letzte)'
+        required: true
+      notes:
+        description: 'Kurze Notiz, die in der App angezeigt wird (optional)'
+        required: false
+permissions:
+  contents: read
+concurrency:
+  group: update-channel
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      RELEASES_REPO: ${{ vars.RELEASES_REPO || 'MRFloyd84/colonia-xanten-releases' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version bestimmen
+        id: v
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          V="${INPUT_VERSION:-$REF_NAME}"
+          V="${V#web-v}"; V="${V#v}"
+          [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Ungültige Version: $V" >&2; exit 1; }
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+      - name: Version ins Spiel schreiben
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: python3 scripts/stamp_web_version.py "$VERSION"
+      - name: Öffentliches Update-Repo holen
+        env:
+          RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          test -n "$RELEASES_TOKEN" || { echo "Secret RELEASES_TOKEN fehlt (siehe README)" >&2; exit 1; }
+          git clone "https://x-access-token:${RELEASES_TOKEN}@github.com/${RELEASES_REPO}.git" "$RUNNER_TEMP/channel"
+      - name: Update-Kanal aktualisieren
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+          NOTES: ${{ inputs.notes }}
+        run: python3 scripts/publish_update.py --channel "$RUNNER_TEMP/channel" --repo "$RELEASES_REPO" --version "$VERSION" --game www/game.html --notes "$NOTES"
+      - name: Veröffentlichen
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          cd "$RUNNER_TEMP/channel"
+          git config user.name "colonia-update-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Spiel v$VERSION" || { echo "Keine Änderungen"; exit 0; }
+          git push origin HEAD:main
+          echo "Spiel-Update v$VERSION veröffentlicht" >> "$GITHUB_STEP_SUMMARY"
