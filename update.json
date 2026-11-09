@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "web": {
-    "version": "1.0.12",
-    "url": "https://raw.githubusercontent.com/MRFloyd84/colonia-xanten/main/web/game-1.0.12.html",
-    "sha256": "1d5802e9575a18ef51098be9f7193a68e8cf49102c31f2f27b57bf4e91e63309",
+    "version": "1.0.13",
+    "url": "https://raw.githubusercontent.com/MRFloyd84/colonia-xanten/main/web/game-1.0.13.html",
+    "sha256": "1164bd6b1431e518ee990e6c9432fc9a7053cdac8135e3dd77fd01654cc21ddc",
     "minShell": 1,
     "notes": "",
-    "published": "2026-11-09T15:36:02+00:00"
+    "published": "2026-11-09T15:37:42+00:00"
   },
   "apk": null,
-  "updated": "2026-11-09T15:36:02+00:00"
+  "updated": "2026-11-09T15:37:42+00:00"
 }

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#171c19">
-  <meta name="cx-web-version" content="1.0.8">
+  <meta name="cx-web-version" content="1.0.13">
   <meta name="cx-min-shell" content="1">
   <meta name="description" content="COLONIA XANTEN: eine interaktive historische Stadtkarte mit Gebäudesimulation.">
   <style>
@@ -23,8 +23,21 @@
 /* V1.0 · Abklingzeiten und Auswirkungen */
 .actions button small{display:block;font-size:10px;font-weight:500;color:#d3c39f;margin-top:4px;letter-spacing:.2px}.actions button.cooling{background:#363b31;border-color:#6f6750}
 .effects{margin:6px 0 2px}.effect{font-size:12px;padding:8px 10px;border-radius:6px;margin:6px 0;line-height:1.45}.effect.bad{background:#4a3229;border-left:3px solid #d0805f;color:#f3d8c8}.effect.good{background:#2f4430;border-left:3px solid #8fb36f;color:#dfead0}.effect.info{background:#323d32;border-left:3px solid #8c967f;color:#dcd9c8}
+
+.editor-panel[hidden]{display:none!important}
+.editor-panel{position:absolute;z-index:20;left:9px;bottom:58px;width:min(285px,calc(100% - 85px));padding:10px;border:1px solid #ceb88a;border-radius:12px;background:rgba(18,31,25,.96);color:#f4e4bc;box-shadow:0 8px 30px #0008;font:13px system-ui,sans-serif;pointer-events:auto;touch-action:manipulation}
+.editor-heading,.editor-footer{display:flex;align-items:center;justify-content:space-between;gap:7px}
+.editor-heading strong{font-size:12px;letter-spacing:.08em}
+.editor-name{font-weight:700;margin:7px 0 2px}
+.editor-details{font-size:11px;min-height:24px;color:#d8cfb5}
+.editor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:8px 0}
+.editor-panel button{min-height:33px;background:#30443b;color:#f7e9bd;border:1px solid #8a8269;border-radius:7px;font:600 12px system-ui,sans-serif}
+.editor-panel button:disabled{opacity:.35}
+.editor-panel button:active{background:#806c42}
+.editor-footer button{flex:1;padding:4px}
+.editor-panel small{display:block;font-size:10px;line-height:1.35;color:#c2bba7;margin-top:6px}
 </style>
-  <title>COLONIA XANTEN · 150 n. Chr. · v1.0.8</title>
+  <title>COLONIA XANTEN · 150 n. Chr. · v1.0.13</title>
 </head>
 <body>
 <div class="app" id="app">
@@ -41,8 +54,30 @@
       <button type="button" id="zoomOut" aria-label="Verkleinern">−</button>
       <button type="button" id="resetView" aria-label="Ansicht zentrieren">⌖</button>
       <button type="button" id="motionToggle" aria-label="Animation ausschalten" title="Animation an/aus">◉</button>
+      <button type="button" id="editorToggle" aria-label="Kartenbearbeitung einschalten" title="Gebäude anordnen">✎</button>
     </div>
     <div class="map-help" id="mapHelp">Schiffe fahren · Bürger bewegen sich · Gebäude antippen</div>
+    <div id="editorPanel" class="editor-panel" hidden>
+   <div class="editor-heading"><strong>✎ KARTEN-EDITOR</strong><button type="button" id="editorDone">Fertig ✓</button></div>
+   <div class="editor-name" data-editor-title>Gebäude oder Wohnblock antippen</div>
+   <div class="editor-details" data-editor-details>Gebäude antippen, verschieben oder mit den Pfeilen ausrichten.</div>
+   <div class="editor-grid">
+    <button type="button" data-map-edit="rotate-left" data-needs-selection>↶ 15°</button>
+    <button type="button" data-map-edit="up" data-needs-selection>↑</button>
+    <button type="button" data-map-edit="rotate-right" data-needs-selection>15° ↷</button>
+    <button type="button" data-map-edit="left" data-needs-selection>←</button>
+    <button type="button" data-map-edit="down" data-needs-selection>↓</button>
+    <button type="button" data-map-edit="right" data-needs-selection>→</button>
+    <button type="button" data-map-edit="smaller" data-needs-selection>− Größe</button>
+    <button type="button" data-map-edit="reset" data-needs-selection>↺ Objekt</button>
+    <button type="button" data-map-edit="larger" data-needs-selection>+ Größe</button>
+   </div>
+   <div class="editor-footer">
+    <button type="button" id="editorResetAll">Alles zurücksetzen</button>
+    <button type="button" id="editorSave">Speichern</button>
+   </div>
+   <small>Nur Darstellung. Drehungen über 15° verändern die Bildperspektive, nicht die 3D-Ansicht.</small>
+  </div>
     <div class="map-compass"><span>N</span><b>✦</b></div>
     <div class="notification" id="notification" role="status" aria-live="polite"></div>
   </main>
@@ -440,47 +475,33 @@ function drawHarbor(d){const{x,y,w,h}=d;fillRect(x+12,y,w-14,h,'#b9a57f');roof(x
 function drawTemple(d){const{x,y,w,h}=d;fillRect(x+6,y+14,w-12,h-24,'#bba987');for(let s=0;s<4;s++)fillRect(x+10+s*5,y+74+s*2,w-20-s*10,3,'#ad9876');roof(x+10,y+13,w-19,26,11,4);fillRect(x+15,y+43,w-30,28,'#e2d5b5');for(let i=0;i<6;i++){fillRect(x+18+i*11,y+41,5,29,'#f0e4cc');fillRect(x+16+i*11,y+39,9,4,'#bca982')}fillRect(x+9,y+72,w-18,6,'#ad9876');polygon([[x+47,y+19],[x+55,y+30],[x+39,y+30]],'#cc8955')}
 
 function drawDistrictDetail(){
- // Kleine Höfe, Laubengänge, Straßenpflaster und Brunnen, ohne die anklickbaren Bauwerke zu verdecken.
- const occupied=Object.values(defs);
- for(let row=0;row<6;row++)for(let col=0;col<7;col++){
-   const x=279+col*115,y=176+row*116;
-   if(occupied.some(d=>x<d.x+d.w+10&&x+94>d.x-10&&y<d.y+d.h+10&&y+91>d.y-10))continue;
-   // Tonziegel-Reihen, kleine Innenhöfe, Schatten und Türen
-   for(let k=0;k<3;k++){
-     const bx=x+9+k*27,by=y+40+(k%2)*11;
-     fillRect(bx,by,14,12,'#d8c9ab');
-     line([[bx+2,by+3],[bx+12,by+3]],'#b48a62',1);
-     fillRect(bx+5,by+11,3,4,'#735a42');
-   }
-   if(random(row,col)>.44){fillRect(x+43,y+37,22,24,'#baad88');ellipse(x+53,y+48,7,6,'#7fa5a0');ellipse(x+53,y+48,3,2,'#c3dbcc')}
+ // Zusatzdekorationen dürfen NIEMALS über die Haus-Sprites gezeichnet werden.
+ // Diese Funktion zeichnet nur Felder AUSSERHALB des Stadtmauerrings.
+ for(let i=0;i<8;i++){
+  const y=36+i*113;
+  fillRect(1120,y,112,55,i%2?'#a5a476':'#b3ac77');
+  for(let k=0;k<7;k++)line([[1126+k*14,y+5],[1132+k*14,y+50]],'#8d9467',1);
  }
- // Unterbrochene Pflasterlinien, Querstraßen sowie einzelne Handelsstände
- for(let x=254;x<=1045;x+=115)for(let y=184;y<795;y+=35){line([[x+4,y],[x+14,y]],'#b7a486',.9)}
- for(let y=151;y<815;y+=116)for(let x=284;x<1030;x+=42)line([[x,y+3],[x+19,y+3]],'#b7a486',.85);
- for(let i=0;i<16;i++){const x=276+(i%8)*89,y=459+Math.floor(i/8)*11;fillRect(x,y,12,7,'#b58f63');polygon([[x-2,y],[x+14,y],[x+11,y-7],[x+1,y-7]],i%2?'#bd704c':'#ddba78');}
- // Landwirtschaftsflächen vor der Mauer, weitere Straßen am Flussufer
- for(let i=0;i<8;i++){const y=36+i*113;fillRect(1120,y,112,55,i%2?'#a5a476':'#b3ac77');for(let k=0;k<7;k++)line([[1126+k*14,y+5],[1132+k*14,y+50]],'#8d9467',1)}
 }
 function drawHarborDetail(){
- // Hafenobjekte bleiben einzeln und an festen Koordinaten: ein Kai, Kran,
- // Stege, Lagergut und Marktstände statt eines nicht anklickbaren Stadtfotos.
+ // Der einzige große Hafenkomplex wird über drawRomanBuilding('hafen') gezeichnet.
+ // Hier liegen ausschließlich separate Anlegestellen entlang der Rheinkante.
+ // Das Wasser endet in diesem Bereich ungefähr bei x=105 bis x=140.
  if(romanAtlas.harbor?.ready){
-  drawRomanAtlas('harbor',0,93,469,116,74);
-  drawRomanAtlas('harbor',1,132,394,45,51);
-  drawRomanAtlas('harbor',2,111,583,59,42);
-  drawRomanAtlas('harbor',1,127,650,45,51);
-  drawRomanAtlas('harbor',4,185,502,35,31);
-  drawRomanAtlas('harbor',6,217,490,35,33);
-  drawRomanAtlas('harbor',6,218,611,34,32);
+  // Stege über dem Wasser, keine zusätzlichen Lagerhaus-Kopien.
+  drawRomanAtlas('harbor',2,55,392,82,48);
+  drawRomanAtlas('harbor',2,53,624,82,48);
+  // Kran und Ware auf der Hafenseite, nicht mitten auf dem Wasser.
+  drawRomanAtlas('harbor',1,127,345,51,52);
+  drawRomanAtlas('harbor',4,148,446,32,29);
+  drawRomanAtlas('harbor',6,166,599,39,32);
   return;
  }
- for(let k=0;k<5;k++){const y=186+k*129;
-  fillRect(119,y+18,14,11,'#84694b');
-  for(let b=0;b<3;b++)fillRect(144+b*12,y+15,10,9,b%2?'#a18b66':'#8c7450');
-  line([[175,y+24],[175,y-19],[195,y-19]],'#5b4b33',3);
-  line([[195,y-19],[195,y+9]],'#bda57d',1.8);
+ // Schlichtes Steg-Fallback, wenn die Atlasgrafik nicht verfügbar ist.
+ for(const y of [402,635]){
+  fillRect(66,y,78,9,'#8e7051');
+  for(let x=72;x<145;x+=23)fillRect(x,y+8,4,15,'#67513b');
  }
- line([[154,125],[154,825]],'#baa486',5);
 }
 function drawGoodsCaravan(){
  // Warenkarren folgen der Verbindung vom Kai zum Speicher, solange Ladung wartet.
@@ -498,12 +519,12 @@ function drawGoodsCaravan(){
 function drawWorkingPopulation(){
  if(!motionEnabled)return;
  const daytime=lightingHour()>=6&&lightingHour()<=19;
- // Auf parallelen, durch die Straßenachsen gedeckten Wegen zur Arbeit.
  const rows=[276,392,508,624],colors=['#6c4b3e','#6e7f66','#8b6c4f','#807493'];
- for(let i=0;i<14;i++){
+ for(let i=0;i<(daytime?17:4);i++){
   const y=rows[i%rows.length],p=(visualSeconds/(88+i%5*13)+i*.193)%1;
   const x=daytime?(i%2?1043-p*779:263+p*779):(i%2?263+p*779:1043-p*779);
-  drawCitizenFigure(x,y,colors[i%colors.length],i%2?Math.PI:0,.96,i*.29);
+  const role=[5,6,7,4,-1,5,8][i%7];
+  drawCitizenFigure(x,y,colors[i%colors.length],i%2?Math.PI:0,.92,i*.29,'walk',role);
  }
 }
 function drawPortSignal(){
@@ -659,6 +680,80 @@ for(const [id,url,cellW,cellH,cols] of [
  img.onerror=()=>{entry.ready=false};
  if(url.startsWith('data:image/webp;base64,'))img.src=url;
 }
+
+// Karten-Editor v1: rein visuelle Platzierung, Simulations-Koordinaten bleiben
+// unangetastet. Die gespeicherten Offsets sind lokal pro Android-Installation.
+const MAP_LAYOUT_KEY='cx-map-layout-v1';
+const mapLayout=(()=>{try{const x=JSON.parse(localStorage.getItem(MAP_LAYOUT_KEY)||'{}');return x&&typeof x==='object'&&!Array.isArray(x)?x:{}}catch{return {}}})();
+let editorMode=false,editorSelected=null,layoutRevision=0;
+const editorPanel=$('editorPanel');
+const editorBlocks={};
+for(let row=0;row<6;row++)for(let col=0;col<7;col++){
+ const x=279+col*115,y=176+row*116;
+ if(Object.values(defs).some(d=>x<d.x+d.w+10&&x+94>d.x-10&&y<d.y+d.h+10&&y+91>d.y-10))continue;
+ editorBlocks['block-'+row+'-'+col]={x,y,w:94,h:91,name:'Wohnblock '+(row+1)+' / '+(col+1)};
+}
+const editableItems={...defs,...editorBlocks};
+function mapPose(id){
+ const p=mapLayout[id]||{};
+ return {dx:Number.isFinite(p.dx)?p.dx:0,dy:Number.isFinite(p.dy)?p.dy:0,
+  angle:Number.isFinite(p.angle)?p.angle:0,size:Number.isFinite(p.size)?p.size:1};
+}
+function persistMapLayout(){
+ try{localStorage.setItem(MAP_LAYOUT_KEY,JSON.stringify(mapLayout))}catch{toast('Kartenposition konnte nicht gespeichert werden.')}
+}
+function invalidateMapLayout(){
+ layoutRevision++;staticKey='';targetLayoutKey='';draw();
+}
+function applyMapPose(id,d,paint){
+ const p=mapPose(id),cx=d.x+d.w/2,cy=d.y+d.h/2;
+ ctx.save();ctx.translate(cx+p.dx,cy+p.dy);
+ ctx.rotate(p.angle*Math.PI/180);ctx.scale(p.size,p.size);ctx.translate(-cx,-cy);
+ try{return paint()}finally{ctx.restore()}
+}
+function selectEditorBuilding(id){
+ if(!editableItems[id])return;
+ editorSelected=id;invalidateMapLayout();refreshMapEditor();
+}
+function refreshMapEditor(){
+ if(!editorPanel)return;
+ const d=editorSelected&&editableItems[editorSelected];
+ const p=d?mapPose(editorSelected):null;
+ editorPanel.querySelector('[data-editor-title]').textContent=d?d.name:'Gebäude oder Wohnblock antippen';
+ editorPanel.querySelector('[data-editor-details]').textContent=p?
+  'X '+Math.round(p.dx)+' · Y '+Math.round(p.dy)+' · Drehung '+Math.round(p.angle)+'° · Größe '+Math.round(p.size*100)+' %':
+  'Tippen zum Auswählen, am Gebäude ziehen zum Verschieben.';
+ editorPanel.querySelectorAll('[data-needs-selection]').forEach(el=>{el.disabled=!d});
+}
+function startMapEditor(){
+ if(regionMode)setRegionMode(false);
+ editorMode=true;editorSelected=null;editorPanel.hidden=false;
+ closeSheet();invalidateMapLayout();refreshMapEditor();
+ $('mapHelp').textContent='BEARBEITEN · Gebäude antippen und verschieben';
+ toast('Bearbeitungsmodus eingeschaltet.');
+}
+function stopMapEditor(){
+ editorMode=false;editorSelected=null;editorPanel.hidden=true;
+ persistMapLayout();invalidateMapLayout();
+ $('mapHelp').textContent='Schiffe fahren · Bürger bewegen sich · Gebäude antippen';
+ toast('Kartenanordnung gespeichert.');
+}
+function adjustMapPose(action){
+ if(!editorSelected)return;
+ const id=editorSelected,p=mapPose(id);
+ switch(action){
+  case 'left':p.dx-=5;break;case 'right':p.dx+=5;break;
+  case 'up':p.dy-=5;break;case 'down':p.dy+=5;break;
+  case 'rotate-left':p.angle-=15;break;case 'rotate-right':p.angle+=15;break;
+  case 'smaller':p.size=Math.max(.5,Math.round((p.size-.05)*100)/100);break;
+  case 'larger':p.size=Math.min(1.6,Math.round((p.size+.05)*100)/100);break;
+  case 'reset':delete mapLayout[id];invalidateMapLayout();persistMapLayout();refreshMapEditor();return;
+ }
+ p.dx=Math.max(-250,Math.min(250,p.dx));
+ p.dy=Math.max(-250,Math.min(250,p.dy));
+ p.angle=((p.angle%360)+360)%360;
+ mapLayout[id]=p;persistMapLayout();invalidateMapLayout();refreshMapEditor();
+}
 function drawRomanAtlas(name,index,x,y,w,h){
  const a=romanAtlas[name];if(!a?.ready)return false;
  const cx=index%a.cols,cy=Math.floor(index/a.cols);
@@ -669,9 +764,17 @@ function drawRomanAtlas(name,index,x,y,w,h){
 // storehouses 11-12, temple 13, north gate 14 and fountain 15.
 const romanBuildingCell={herberge:5,werkstatt:7,lager:12,tempel:13,tor:14,insula:3,wasser:15};
 function drawRomanBuilding(id,d){
+ // Ein Hafengebäude statt zwei. Die Backsteinfront blickt zur Kaikante;
+ // die Gebäudebasis sitzt innerhalb der anklickbaren Grundfläche.
+ if(id==='hafen'){
+  const width=d.w*1.16,height=width*132/170;
+  return drawRomanAtlas('harbor',0,d.x+(d.w-width)/2,d.y+d.h+4-height,width,height);
+ }
  const cell=romanBuildingCell[id];if(cell===undefined)return false;
- const w=d.w*(id==='tor'?1.16:1.16),h=w*.92;
- return drawRomanAtlas('buildings',cell,d.x+(d.w-w)/2,d.y+d.h+8-h,w,h);
+ const width=d.w*(id==='tor'?1.13:1.08);
+ const height=width*124/136;
+ const bottom=d.y+d.h+(id==='tor'?3:4);
+ return drawRomanAtlas('buildings',cell,d.x+(d.w-width)/2,bottom-height,width,height);
 }
 function drawBuildingSprite(id,d){
  const entry=buildingSprites[id];if(!entry?.ready)return false;
@@ -727,40 +830,44 @@ function cityHouse(x,y,w,h,kind=0){
  ctx.restore();
 }
 function cityCourtyard(x,y,seed){
- fillRect(x,y,98,91,'#b3a588');
- ctx.strokeStyle='rgba(111,91,65,.26)';ctx.lineWidth=1;ctx.strokeRect(x+1,y+1,96,89);
- // Kieshof und Gartenstreifen mit zwei Bäumen/Brunnen
- fillRect(x+11,y+12,76,66,'#cbb99b');
- const type=Math.floor(random(seed,12)*4);
- if(type===0){
-  ellipse(x+49,y+46,18,13,'#a49679');ellipse(x+49,y+44,13,9,'#709a96');ellipse(x+49,y+44,8,5,'#83b7b8');
- }else{
-  for(let n=0;n<3;n++){const bx=x+30+n*17;ellipse(bx,y+45,8,5,'#86946e')}
+ // Nur subtiler Erdboden unter dem neuen Bild. Keine alten Dächer, Pool-Kreise
+ // oder hellen, rechteckigen Platzhalter mehr.
+ ctx.save();
+ ctx.fillStyle='#b5a987';
+ ctx.fillRect(x,y,98,91);
+ ctx.fillStyle='rgba(99,100,69,.12)';
+ for(let i=0;i<12;i++){
+  const px=x+5+random(seed+i,811)*87,py=y+5+random(seed+i,933)*81;
+  ctx.fillRect(px,py,2,1.3);
  }
- for(let n=0;n<24;n++){
-  const px=x+11+random(seed+n,811)*76,py=y+11+random(seed+n,933)*69;
-  fillRect(px,py,1.5,1.1,n%2?'#d4c5a8':'#aa9878');
- }
+ ctx.restore();
 }
 function drawNewCityBlock(x,y,row,col){
  const seed=col+row*17,style=Math.floor(random(seed,51)*5);
  cityCourtyard(x-5,y-5,seed);
- const houseType=[0,1,2,3,4][style];
- // Ein zusammenhängender Gebäudesprite pro Block, damit kein Dach die Straße
- // verdeckt. Der Fußpunkt entspricht der bestehenden Blockgrenze.
- const w=style===4?86:style===3?83:77;
- const h=w*.91;
- if(drawRomanAtlas('buildings',houseType,x+47-w/2,y+84-h,w,h))return;
- // Fallback für offline/alte Darstellung.
+ applyMapPose('block-'+row+'-'+col,{x,y,w:94,h:91},()=>{
+ const houseType=style;
+ const available=romanAtlas.buildings?.ready;
+ if(available){
+  // Bildausschnitt ist für alle Varianten 136x124. Bodenanker y+85,
+  // zentriert im Grundstück mit 8 Karten-Einheiten Rand zur Straße.
+  const width=style===3?86:style===4?81:79;
+  const height=width*124/136;
+  drawRomanAtlas('buildings',houseType,x+47-width/2,y+85-height,width,height);
+  return;
+ }
+ // Grafischer Rückfall nur wenn der Atlas nicht geladen werden kann.
  if(style===3){
   cityHouse(x+4,y+6,78,35,seed);cityHouse(x+3,y+51,39,29,seed+2);tree(x+69,y+64,9);
  }else if(style===2){
-  cityHouse(x+4,y+3,39,37,seed);cityHouse(x+50,y+3,36,37,seed+2);cityHouse(x+13,y+53,65,27,seed+3);
+  cityHouse(x+4,y+3,39,37,seed);cityHouse(x+50,y+3,36,37,seed+2);
+  cityHouse(x+13,y+53,65,27,seed+3);
  }else{
   cityHouse(x+4,y+6,42,32,seed);cityHouse(x+51,y+5,34,34,seed+1);
   cityHouse(x+5,y+51,37,31,seed+3);
-  if(style===0)cityHouse(x+52,y+52,31,29,seed+4);else tree(x+69,y+67,8);
+  if(style===0)cityHouse(x+52,y+52,31,29,seed+4);
  }
+ });
 }
 function drawCityPavement(x,y,w,h,vertical=false){
  // Die reale römische Pflaster-Grafik wird als Textur innerhalb der
@@ -792,8 +899,11 @@ if(!groundLayer)buildGround();
 ctx.drawImage(groundLayer,EXT.x0,EXT.y0,EXT.x1-EXT.x0,EXT.y1-EXT.y0);
 drawRiverBase();
 drawLandscape();
-for(let j=0;j<5;j++){const y=178+j*130;fillRect(97,y,125,12,'#786044');fillRect(96,y+12,9,12,'#544333');for(let k=0;k<4;k++)fillRect(114+k*25,y+2,7,8,'#967a55')}
-for(let i=0;i<7;i++){let y=124+i*102;fillRect(112,y+18,35,12,'#80684a');fillRect(131,y+12,11,22,'#a68a65');ellipse(146,y+38,4,4,'#66503a')}
+// Alte Rechteck-Stege entfernt: die Hafengrafik zeichnet die Anleger selbst.
+// Durchgehende Uferbefestigung, ohne braune Balken über Wasser und Land.
+fillRect(130,126,9,696,'#8c785a');
+fillRect(137,126,4,696,'#c3af89');
+for(let y=145;y<815;y+=18)line([[132,y],[139,y+1]],'rgba(72,59,42,.28)',.8);
 fillRect(230,124,842,701,'#a7a27c');fillRect(243,137,816,674,'#b1a985');
 ctx.strokeStyle='#88836b';ctx.lineWidth=21;ctx.strokeRect(230,124,842,701);ctx.strokeStyle='#ded0ae';ctx.lineWidth=5;ctx.strokeRect(230,124,842,701);
 const towers=[[230,124],[651,124],[1072,124],[230,474],[1072,474],[230,825],[651,825],[1072,825]];for(const [tx,ty] of towers){fillRect(tx-14,ty-14,28,28,'#7f775d');fillRect(tx-10,ty-10,20,20,'#b8ab8b')}
@@ -804,8 +914,20 @@ fillRect(1058,460,65,22,'#d6c3a0');fillRect(615,112,22,45,'#d6c3a0');fillRect(61
 const specials=Object.values(defs);for(let row=0;row<6;row++){for(let col=0;col<7;col++){let x=279+col*115,y=176+row*116;let intersect=specials.some(d=>x<d.x+d.w+10 && x+94>d.x-10 && y<d.y+d.h+10 && y+91>d.y-10);if(intersect)continue;drawNewCityBlock(x,y,row,col);}}
 drawDistrictDetail();drawHarborDetail();
 for(let i=0;i<95;i++){const x=168+random(i,3)*965,y=30+random(i,8)*869;if(x>214&&x<1090&&y>104&&y<849)continue;tree(x,y,6+random(i,43)*9)}
-for(const [id,d] of Object.entries(defs)){if(drawBuildingSprite(id,d)||drawRomanBuilding(id,d))continue;if(id==='amphitheater')drawArena(d);if(id==='thermen')drawThermes(d);if(id==='forum')drawForum(d);if(id==='hafen')drawHarbor(d);if(id==='tempel')drawTemple(d);if(id==='lager')drawWarehouse(d);if(id==='werkstatt')drawWorkshop(d);if(id==='tor')drawGate(d);if(id==='insula')drawHousing(d);if(id==='wasser')drawWater(d);if(id==='herberge')drawHousing(d)}
-for(const [id,d] of Object.entries(defs)){ctx.save();ctx.setLineDash([5,4]);ctx.lineWidth=2;ctx.strokeStyle='rgba(255,237,180,.9)';ctx.strokeRect(d.x-6,d.y-7,d.w+12,d.h+14);ctx.restore();let short={thermen:'THERMEN',amphitheater:'ARENA',forum:'FORUM',hafen:'HAFEN',tempel:'TEMPEL',lager:'SPEICHER',werkstatt:'HANDWERK',tor:'NORDTOR',insula:'WOHNEN',wasser:'WASSER',herberge:'HERBERGE'}[id];label(short,d.x+d.w/2,d.y+d.h+36)}
+for(const [id,d] of Object.entries(defs))applyMapPose(id,d,()=>{
+ if(drawBuildingSprite(id,d)||drawRomanBuilding(id,d))return;
+ if(id==='amphitheater')drawArena(d);if(id==='thermen')drawThermes(d);
+ if(id==='forum')drawForum(d);if(id==='hafen')drawHarbor(d);
+ if(id==='tempel')drawTemple(d);if(id==='lager')drawWarehouse(d);
+ if(id==='werkstatt')drawWorkshop(d);if(id==='tor')drawGate(d);
+ if(id==='insula')drawHousing(d);if(id==='wasser')drawWater(d);
+ if(id==='herberge')drawHousing(d);
+})
+for(const [id,d] of Object.entries(defs)){
+ const p=mapPose(id);
+ const short={thermen:'THERMEN',amphitheater:'ARENA',forum:'FORUM',hafen:'HAFEN',tempel:'TEMPEL',lager:'SPEICHER',werkstatt:'HANDWERK',tor:'NORDTOR',insula:'WOHNEN',wasser:'WASSER',herberge:'HERBERGE'}[id];
+ label(short,d.x+d.w/2+p.dx,d.y+d.h+36+p.dy);
+}
 drawSeasonOverlay();
 ctx.font='italic 23px Georgia';ctx.textAlign='center';ctx.fillStyle='#e0eee5';for(const ly of [389,-420,1290]){ctx.save();ctx.translate(-110,ly);ctx.rotate(-Math.PI/2);ctx.fillText('RHENVS · RHEIN',0,0);ctx.restore()}
 }
@@ -814,7 +936,7 @@ function drawDynamicMap(){
  for(let i=0;i<110;i++){const y=EXT.y0-55+((i*span/110+(i%7)*13+(motionEnabled?visualSeconds*7:0))%span),x=-322+(i%7)*58+Math.sin(i*2.3)*16;if(y<vb.y0-20||y>vb.y1+20)continue;line([[x,y],[x+22,y-4],[x+47,y+2]],'#a8cfca',i%4===0?2.4:1.2)}
  const bspan=EXT.y1-EXT.y0+240;
  for(let j=0;j<8;j++){const speed=[8,-6,4.7,-7,3.2,5.6,-4.4,6.3][j],phase=(visualSeconds*speed+j*331+state.day*17);const y=EXT.y0-120+((phase%bspan)+bspan)%bspan;if(y<vb.y0-80||y>vb.y1+80)continue;const x=-286+(j%3)*100+Math.sin(y*.008+j)*22;drawWake(x,y,speed>0);drawBoat(x,y,speed>0)}
- drawAnimatedCityDetails(vb);drawCitizens();drawWorkingPopulation();drawGoodsCaravan();drawPortSignal();drawSmoke();drawWarnings();drawNightOverlay();
+ drawEditorSelection();drawAnimatedCityDetails(vb);drawCitizens();drawWorkingPopulation();drawHarborPeople(vb);drawGoodsCaravan();drawPortSignal();drawSmoke();drawWarnings();drawNightOverlay();
 }
 // Bewegte Stadt-Details. Sichtfeldprüfung hält die Arbeit auf kleinen Displays gering.
 function drawAnimatedCityDetails(vb){
@@ -845,6 +967,35 @@ function drawAnimatedCityDetails(vb){
   if(v<.55)for(let i=0;i<3;i++){const f=v/.55;ellipse(938+Math.cos(i*2.4)*f*12,320-Math.sin(i*2.1+1)*f*9,1.4*(1-f),1.4*(1-f),'#f7c77f')}
  }
 }
+function drawHarborPeople(vb){
+ // Zusätzlicher Hafenbetrieb an den Kais; Arbeiter warten zwischen zwei Wegen.
+ if(!motionEnabled||lightingHour()<6||lightingHour()>20||!inView(150,540,130,vb))return;
+ for(let i=0;i<5;i++){
+  const y=494+i*42;
+  const x=140+Math.sin(visualSeconds*.21+i*1.8)*13;
+  const role=[5,6,7,4,8][i];
+  ctx.save();
+  ctx.translate(x,y);
+  ellipse(0,1,5,2,'rgba(24,24,24,.26)');
+  const a=romanAtlas.people;
+  if(a?.ready){
+   const idx=role,bob=Math.abs(Math.sin(visualSeconds*4.6+i))*.6;
+   ctx.drawImage(a.img,(idx%4)*64,Math.floor(idx/4)*88,64,88,-10,-23-bob,20,24);
+  }else{
+   ctx.fillStyle='#79604b';ctx.fillRect(-2,-12,4,12);
+  }
+  ctx.restore();
+ }
+}
+function drawEditorSelection(){
+ if(!editorMode||!editorSelected||!editableItems[editorSelected])return;
+ const d=editableItems[editorSelected],p=mapPose(editorSelected);
+ ctx.save();ctx.translate(d.x+p.dx+d.w/2,d.y+p.dy+d.h/2);
+ ctx.rotate(p.angle*Math.PI/180);
+ ctx.strokeStyle='#ffda83';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+ ctx.strokeRect(-d.w*p.size/2,-d.h*p.size/2,d.w*p.size,d.h*p.size);
+ ctx.restore();
+}
 function drawWarnings(){
  if(!problemIds.size)return;const pulse=.72+.28*Math.sin(visualSeconds*3.2);
  for(const id of problemIds){const d=defs[id];const x=d.x+d.w+6,y=d.y-8;ctx.save();ctx.globalAlpha=pulse;ellipse(x,y,12,12,'#c8664a');ctx.globalAlpha=1;ctx.strokeStyle='#ffe6c4';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,12,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#fff3df';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',x,y+1);ctx.restore()}
@@ -866,47 +1017,74 @@ function pedestrianOnStreet(x,y){
  }
  return true;
 }
-function drawCitizenFigure(x,y,color,angle=0,scale=1,phase=0,activity='walk'){
+// Personenatlas: 0 Wache, 1 Bürger, 2 Bürgerin, 3 Beamter,
+// 4 Händler, 5-7 Arbeiter, 8 Marktfrau, 9 Kind.
+// Der ältere 8-Frame-Gehzyklus bleibt für laufende erwachsene Männer erhalten.
+function drawCitizenFigure(x,y,color,angle=0,scale=1,phase=0,activity='walk',role=-1){
  if(!pedestrianOnStreet(x,y))return;
- const art=cityArt.citizens;
- const walking=activity==='walk'&&motionEnabled;
- if(art?.ready){
-  const frame=walking?Math.floor((visualSeconds*6+phase*8)%8):0;
-  const h=23*scale,w=18*scale;
-  ctx.save();ctx.translate(x,y);
-  // Figur bleibt immer aufrecht; Spiegelung nach links statt Rotation um 90°.
-  if(Math.cos(angle)<-.35)ctx.scale(-1,1);
-  ellipse(0,0,7*scale,2.4*scale,'rgba(36,32,25,.36)');
-  ctx.drawImage(art.img,frame*64,0,64,80,-w/2,-h+1,w,h);
-  ctx.restore();
-  return;
- }
- // Falls das Sprite nicht geladen werden kann, bleibt die bisherige Figur sichtbar.
+ const moving=activity==='walk'&&motionEnabled;
+ const bob=moving?Math.abs(Math.sin(visualSeconds*7+phase*6.28))*.65:0;
+ const h=role===9?15*scale:23*scale,w=role===9?11*scale:18*scale;
  ctx.save();ctx.translate(x,y);
- ellipse(0,1,4.6*scale,2.1*scale,'rgba(36,32,25,.32)');
- const step=walking?Math.sin(visualSeconds*9+phase*6.28)*2:0;
+ if(Math.cos(angle)<-.35)ctx.scale(-1,1);
+ ellipse(0,1,Math.max(3,5*scale),1.9*scale,'rgba(34,30,25,.28)');
+ if(role>=0&&romanAtlas.people?.ready){
+  // Jede Figur steht auf demselben Bodenanker. Kleine vertikale Schrittbewegung
+  // und variierende Geschwindigkeit geben den Standbildern Leben.
+  const a=romanAtlas.people,idx=Math.min(9,role);
+  const stride=moving?Math.sin(visualSeconds*6+phase*6.28)*.025:0;
+  ctx.translate(0,-bob);
+  ctx.transform(1,0,stride,1,0,0);
+  ctx.drawImage(a.img,(idx%4)*64,Math.floor(idx/4)*88,64,88,-w/2,-h+1,w,h);
+  ctx.restore();return;
+ }
+ const art=cityArt.citizens;
+ if(art?.ready){
+  const frame=moving?Math.floor((visualSeconds*6+phase*8)%8):0;
+  ctx.drawImage(art.img,frame*64,0,64,80,-w/2,-h+1-bob,w,h);
+  ctx.restore();return;
+ }
  ctx.scale(scale,scale);line([[0,-10],[0,-3]],color,2.5);
- line([[0,-4],[-2+step,0]],'#604b38',1.5);
- line([[0,-4],[2-step,0]],'#604b38',1.5);
  ellipse(0,-13,2.4,2.6,'#e0b892');ctx.restore();
 }
 function drawCitizens(){
- // Waagerechte Wege: vollständig frei von diagonalen Abkürzungen.
  const lanes=[160,392,508,624,740];
  const colors=['#9c5841','#e2d3b4','#58705c','#7b6554','#a29b80','#856f9d'];
- for(let i=0;i<32;i++){
+ // Tageslicht: dichtes Stadtleben; nachts deutlich weniger Passanten.
+ const day=lightingHour()>=6&&lightingHour()<=21;
+ const count=day?40:9;
+ for(let i=0;i<count;i++){
   const y=lanes[i%lanes.length];
-  const speed=75+(i%6)*13,phase=(visualSeconds/speed+i*.137)%1;
+  const speed=80+(i%6)*16,phase=(visualSeconds/speed+i*.137)%1;
   const x=i%2?1050-phase*790:259+phase*790;
-  drawCitizenFigure(x,y,colors[i%colors.length],i%2?Math.PI:0,.94+(i%3)*.05,i*.17);
+  const role=[-1,2,4,8,-1,9,3,1,-1,2,9,0][i%12];
+  const scale=(role===9?.76:.89)+(i%3)*.052;
+  drawCitizenFigure(x,y,colors[i%colors.length],i%2?Math.PI:0,scale,i*.17,'walk',role);
  }
- // Wagen bleiben auf der Marktstraße und werden nur angezeigt, wo die Straße frei ist.
+ // Patrouillen auf Nord- und Südstraße.
+ for(let i=0;i<4;i++){
+  const y=i%2?740:160,x=283+((visualSeconds/1.3+i*199)%725);
+  drawCitizenFigure(x,y,'#a84731',0,1.06,i*.27,'walk',0);
+ }
+ // Markt und Hafen: kleine Gruppen, die sich auf kurzen Wegen bewegen.
+ if(day)for(let i=0;i<8;i++){
+  const y=i%2?508:392,range=i%2?250:180;
+  const x=(i%2?510:550)+(Math.sin(visualSeconds*.13+i*2.3)+1)*range*.5;
+  const role=[8,2,4,5,9,8,1,6][i];
+  drawCitizenFigure(x,y,'#b58e65',i%2?Math.PI:0,role===9?.77:.92,i*.31,'walk',role);
+ }
+ // Karren bleiben auf der Marktstraße.
  for(let i=0;i<3;i++){
   const phase=(visualSeconds/66+i*.31)%1,x=275+phase*750,y=508;
   if(!pedestrianOnStreet(x,y))continue;
-  ctx.save();ctx.translate(x,y);ellipse(1,3,12,3.5,'rgba(40,35,25,.29)');
-  fillRect(-8,-6,16,9,'#96744d');fillRect(-2,-12,8,7,'#b18b60');
-  ellipse(-6,5,3.5,3.5,'#514a3c');ellipse(6,5,3.5,3.5,'#514a3c');ctx.restore();
+  ctx.save();ctx.translate(x,y);
+  ellipse(1,3,12,3.5,'rgba(40,35,25,.29)');
+  // Variationen im Warenverkehr aus dem Hafenatlas (Karren).
+  if(!drawRomanAtlas('harbor',5,-14,-17,27,19)){
+   fillRect(-8,-6,16,9,'#96744d');
+   ellipse(-6,5,3.5,3.5,'#514a3c');ellipse(6,5,3.5,3.5,'#514a3c');
+  }
+  ctx.restore();
  }
 }
 function drawSmoke(){
@@ -965,7 +1143,7 @@ function clampPan(){const sc=base*zoom;if(!sc)return;const hw=vw/2/sc,hh=vh/2/sc
 const staticCanvas=document.createElement('canvas');let staticKey='';
 function draw(){if(regionMode){drawRegion();return}if(!vw||!vh||document.hidden)return;
  clampPan();
- const key=[canvas.width,canvas.height,zoom.toFixed(4),panX.toFixed(2),panY.toFixed(2),liveClock.season].join('|');
+ const key=[canvas.width,canvas.height,zoom.toFixed(4),panX.toFixed(2),panY.toFixed(2),liveClock.season,layoutRevision].join('|');
  if(key!==staticKey){staticKey=key;if(staticCanvas.width!==canvas.width||staticCanvas.height!==canvas.height){staticCanvas.width=canvas.width;staticCanvas.height=canvas.height}
   const g=staticCanvas.getContext('2d');ctx=g;try{g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle='#859375';g.fillRect(0,0,vw,vh);g.save();transform();g.translate(RIVER_OFFSET,0);drawStaticMap();g.restore()}finally{ctx=mainCtx}}
  ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(staticCanvas,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.save();transform();ctx.translate(RIVER_OFFSET,0);drawDynamicMap();ctx.restore();updateBuildingTargets()}
@@ -982,27 +1160,29 @@ buildingTargets.id='buildingTargets';
 buildingTargets.className='cx-building-targets';
 canvas.insertAdjacentElement('afterend',buildingTargets);
 const targetEls=new Map();
-for(const [id,d] of Object.entries(defs)){
+for(const [id,d] of Object.entries(editableItems)){
  const el=document.createElement('button');el.type='button';el.className='cx-building-target';
- el.dataset.building=id;el.setAttribute('aria-label',d.name+' öffnen');
+ el.dataset.building=id;el.setAttribute('aria-label',(d.name||'Wohnblock')+' auswählen');
  buildingTargets.appendChild(el);targetEls.set(id,el);
 }
 let targetLayoutKey='';
 function updateBuildingTargets(){
- const key=[vw,vh,panX.toFixed(2),panY.toFixed(2),zoom.toFixed(4),regionMode].join('|');
+ const key=[vw,vh,panX.toFixed(2),panY.toFixed(2),zoom.toFixed(4),regionMode,editorMode,layoutRevision].join('|');
  if(key===targetLayoutKey)return;
  targetLayoutKey=key;
  const scale=base*zoom;
- for(const [id,d] of Object.entries(defs)){
-  const el=targetEls.get(id);
-  const x=vw/2+panX+(d.x+RIVER_OFFSET-WORLD_W/2)*scale;
-  const y=vh/2+panY+(d.y-WORLD_H/2)*scale;
-  const w=d.w*scale,h=d.h*scale;
+ for(const [id,d] of Object.entries(editableItems)){
+  const el=targetEls.get(id),p=mapPose(id);
+  const x=vw/2+panX+(d.x+p.dx+RIVER_OFFSET-WORLD_W/2)*scale;
+  const y=vh/2+panY+(d.y+p.dy-WORLD_H/2)*scale;
+  const w=d.w*p.size*scale,h=d.h*p.size*scale;
   const bw=Math.max(46,w+10),bh=Math.max(46,h+10);
-  el.style.left=(x+w/2-bw/2)+'px';
-  el.style.top=(y+h/2-bh/2)+'px';
+  el.style.left=(x+(d.w*scale-bw)/2)+'px';
+  el.style.top=(y+(d.h*scale-bh)/2)+'px';
   el.style.width=bw+'px';el.style.height=bh+'px';
-  el.hidden=regionMode;
+  el.hidden=regionMode||(!editorMode&&!!editorBlocks[id]);
+  el.style.outline=editorMode&&editorSelected===id?'2px solid #ffd481':touchDiagnostics?'1px solid #f1ca79':'';
+  el.style.background=editorMode&&editorSelected===id?'rgba(255,199,88,.14)':touchDiagnostics?'rgba(249,199,75,.25)':'';
  }
  buildingTargets.style.display=regionMode?'none':'block';
 }
@@ -1017,6 +1197,7 @@ function enableTouchDiagnostics(on){
  toast(on?'Touch-Test aktiv: gelbe Flächen antippen':'Touch-Test deaktiviert');
 }
 function openMapBuilding(id,origin){
+ if(editorMode){if(id)selectEditorBuilding(id);return !!id}
  if(!id){touchDebug(origin+': kein Gebäude erkannt');return false}
  if(Date.now()-lastBuildingOpen<500)return true;
  lastBuildingOpen=Date.now();
@@ -1032,7 +1213,7 @@ inputRoot.addEventListener('pointerdown',e=>{
  if(regionMode||!isMapInput(e.target))return;
  try{e.target.setPointerCapture(e.pointerId)}catch{}
  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
- if(pointers.size===1)gesture={startX:e.clientX,startY:e.clientY,moved:false,pinch:false};
+ if(pointers.size===1)gesture={startX:e.clientX,startY:e.clientY,moved:false,pinch:false,editorDragId:editorMode?(e.target.closest?.('.cx-building-target')?.dataset.building||buildingAtScreen(e.clientX,e.clientY)):null};
  else if(pointers.size===2&&gesture){gesture.pinch=true;gesture.moved=true;gesture.distance=distance();gesture.initialZoom=zoom}
 });
 inputRoot.addEventListener('pointermove',e=>{
@@ -1045,7 +1226,14 @@ inputRoot.addEventListener('pointermove',e=>{
   setZoom(gesture.initialZoom*d/Math.max(1,gesture.distance),(pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top);
  }else if(pointers.size===1){
   if(Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)>12)gesture.moved=true;
-  if(gesture.moved){panX+=e.clientX-prev.x;panY+=e.clientY-prev.y;draw()}
+  if(gesture.moved){
+   if(editorMode&&gesture.editorDragId&&editableItems[gesture.editorDragId]){
+    const id=gesture.editorDragId,p=mapPose(id),scale=base*zoom;
+    p.dx=Math.max(-250,Math.min(250,p.dx+(e.clientX-prev.x)/scale));
+    p.dy=Math.max(-250,Math.min(250,p.dy+(e.clientY-prev.y)/scale));
+    mapLayout[id]=p;editorSelected=id;invalidateMapLayout();refreshMapEditor();
+   }else{panX+=e.clientX-prev.x;panY+=e.clientY-prev.y;draw()}
+  }
  }
 });
 function buildingAtScreen(clientX,clientY){
@@ -1053,13 +1241,15 @@ function buildingAtScreen(clientX,clientY){
  const px=clientX-bounds.left,py=clientY-bounds.top;
  const scale=base*zoom;
  let best=null,bestScore=Infinity;
- for(const [id,d] of Object.entries(defs)){
-  const x=vw/2+panX+(d.x+RIVER_OFFSET-WORLD_W/2)*scale;
-  const y=vh/2+panY+(d.y-WORLD_H/2)*scale;
-  const w=d.w*scale,h=d.h*scale;
+ for(const [id,d] of Object.entries(editorMode?editableItems:defs)){
+  const p=mapPose(id);
+  const x=vw/2+panX+(d.x+p.dx+RIVER_OFFSET-WORLD_W/2)*scale;
+  const y=vh/2+panY+(d.y+p.dy-WORLD_H/2)*scale;
+  const w=d.w*p.size*scale,h=d.h*p.size*scale;
   const padX=Math.max(6,(46-w)/2),padY=Math.max(6,(46-h)/2);
-  if(px<x-padX||px>x+w+padX||py<y-padY||py>y+h+padY)continue;
-  const dx=Math.max(x-px,0,px-(x+w)),dy=Math.max(y-py,0,py-(y+h));
+  const centerX=x+d.w*scale/2,centerY=y+d.h*scale/2;
+  if(Math.abs(px-centerX)>w/2+padX||Math.abs(py-centerY)>h/2+padY)continue;
+  const dx=Math.max(Math.abs(px-centerX)-w/2,0),dy=Math.max(Math.abs(py-centerY)-h/2,0);
   const score=dx*dx+dy*dy;
   if(score<bestScore){best=id;bestScore=score}
  }
@@ -1069,6 +1259,7 @@ function finishMapPointer(e){
  if(!pointers.has(e.pointerId))return;
  const tapped=e.type==='pointerup'&&pointers.size===1&&gesture&&!gesture.pinch&&!gesture.moved
   &&Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)<15;
+ if(editorMode&&gesture?.moved&&gesture.editorDragId){persistMapLayout();refreshMapEditor()}
  pointers.delete(e.pointerId);
  lastPointerTap=Date.now();
  if(tapped&&!regionMode){
@@ -1101,6 +1292,13 @@ inputRoot.addEventListener('touchend',e=>{
 },{passive:true});
 inputRoot.addEventListener('touchcancel',()=>{nativeTouchStart=null},{passive:true});
 canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();setZoom(zoom*(e.deltaY<0?1.12:.89),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+
+$('editorToggle').onclick=()=>editorMode?stopMapEditor():startMapEditor();
+$('editorDone').onclick=stopMapEditor;
+$('editorSave').onclick=()=>{persistMapLayout();toast('Kartenanordnung gespeichert.')};
+$('editorResetAll').onclick=()=>{if(!confirm('Alle Gebäude-Positionen und Drehungen zurücksetzen?'))return;for(const id of Object.keys(mapLayout))delete mapLayout[id];persistMapLayout();invalidateMapLayout();refreshMapEditor();toast('Alle Gebäude zurückgesetzt.')};
+editorPanel.querySelectorAll('[data-map-edit]').forEach(b=>b.onclick=()=>adjustMapPose(b.dataset.mapEdit));
+refreshMapEditor();
 window.addEventListener('resize',resize);if('ResizeObserver' in window)new ResizeObserver(resize).observe(canvas);
 
 // REGIO RHENI: offline illustrated historical landscape; modern georeferencing is approximate.
@@ -1168,7 +1366,7 @@ for(const p of places){const q=geo(p.lat,p.lon),isC=p.id==='colonia';rx.save();r
 rx.restore();rx.fillStyle='#223127dd';rx.fillRect(12,rH-30,108,21);rx.fillStyle='#e6d6ac';rx.font='11px system-ui';rx.textAlign='left';rx.fillText('≈ 50 km Radius',19,rH-15);
 }
 function regionZoomBy(mult,x=rW/2,y=rH/2){const before=rPoint(x,y);rZoom=clamp(rZoom*mult,.65,5);const after=rPoint(x,y);rPanX+=(after.x-before.x)*rBase()*rZoom;rPanY+=(after.y-before.y)*rBase()*rZoom;drawRegion()}
-function setRegionMode(on){regionMode=on;if(typeof buildingTargets!=='undefined')buildingTargets.style.display=on?'none':'block';$('regionView').classList.toggle('active',on);$('regionInfo').classList.toggle('active',on);$('regionLegend').classList.toggle('active',on);$('regionSwitch').classList.toggle('active',on);$('regionSwitch').textContent=on?'⌂ ZUR STADT':'◈ REGION · 50 KM';$('mapHelp').textContent=on?'Fundorte / Handelswege antippen · 50 km Radius':'Schiffe fahren · Bürger bewegen sich · Gebäude antippen';if(on){resizeRegion();drawRegion()}else draw()}
+function setRegionMode(on){if(on&&editorMode)stopMapEditor();regionMode=on;if(typeof buildingTargets!=='undefined')buildingTargets.style.display=on?'none':'block';$('regionView').classList.toggle('active',on);$('regionInfo').classList.toggle('active',on);$('regionLegend').classList.toggle('active',on);$('regionSwitch').classList.toggle('active',on);$('regionSwitch').textContent=on?'⌂ ZUR STADT':'◈ REGION · 50 KM';$('mapHelp').textContent=on?'Fundorte / Handelswege antippen · 50 km Radius':'Schiffe fahren · Bürger bewegen sich · Gebäude antippen';if(on){resizeRegion();drawRegion()}else draw()}
 $('regionSwitch').onclick=()=>{closeSheet();setRegionMode(!regionMode)};
 function showPlace(p){opened='region-'+p.id;let isCity=p.id==='colonia';const tradeOk=Boolean(TRADE_ROUTES.find(r=>r.place===p.id));openSheet(`<span class="kicker">REGIO RHENI · CA. 150 N. CHR.</span><h2>${p.name}</h2><p>${p.description}</p><div class="notice">Historisch belegter Ort oder Fundplatz. Die Markerpositionen sind ungefähr, Wege und antiker Flusslauf bewusst schematisch. Keine metergenaue archäologische Karte.</div><div class="actions"><button type="button" id="regioBack">${isCity?'Stadt betreten':'Zur Regionskarte'}</button><button type="button" id="regioSource">Historische Quelle ↗</button>${tradeOk?'<button type="button" id="regioTrade">Handel mit diesem Ort ⚓</button>':''}</div>`);if(tradeOk)$('regioTrade').onclick=()=>showTrade(p.id);$('regioBack').onclick=()=>{closeSheet();if(isCity)setRegionMode(false)};$('regioSource').onclick=()=>window.open(p.source,'_blank','noopener')}
 rc.addEventListener('pointerdown',e=>{rc.setPointerCapture(e.pointerId);rTouch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(rTouch.size===1)rGesture={sx:e.clientX,sy:e.clientY,moved:false,lastDist:0};else if(rTouch.size===2){rGesture.moved=true;rGesture.lastDist=rTouchDistance()}});
