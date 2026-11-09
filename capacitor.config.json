@@ -1,0 +1,8 @@
+{
+  "appId": "de.colonia.xanten",
+  "appName": "COLONIA XANTEN",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
