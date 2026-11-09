@@ -65,7 +65,7 @@ function addBuilding(stage,o,a,click){
   group.eventMode='static';group.cursor='pointer';
   group.on('pointertap',()=>{if(click)click(o.id)});
  }
- stage.addChild(group);return group;
+ group.zIndex=o.y+o.h;stage.addChild(group);return group;
 }
 function houses(){
  const out=[];
@@ -86,21 +86,21 @@ export class ColoniaPixi21{
   this.canvas=this.app.canvas;
   Object.assign(this.canvas.style,{position:'absolute',inset:'0',width:'100%',height:'100%',touchAction:'none',zIndex:'1'});
   this.mount.appendChild(this.canvas);
-  this.world=new Container();this.app.stage.addChild(this.world);
+  this.world=new Container();this.world.sortableChildren=true;this.app.stage.addChild(this.world);this.app.ticker.maxFPS=30;
   paintBase(this.world);
   for(const o of [...houses(),...BUILDINGS].sort((a,b)=>a.y+a.h-b.y-b.h))addBuilding(this.world,o,this.assets,id=>{if(!this.dragged)this.openBuilding(id)});
-  this.population=new Container();this.world.addChild(this.population);
+  this.population=this.world;
   for(let i=0;i<22;i++){
    const role=(i*3)%10,entity=new Container(),sp=sheet(this.assets.atlases?.people,role,4,64,88);
    entity.addChild(oval(0,1,7,2.5,0x393126,.35));
    if(sp){const img=new Sprite(sp);img.width=role===9?17:23;img.height=role===9?27:36;img.anchor.set(.5,1);entity.addChild(img)}
    else entity.addChild(rect(-3,-25,6,23,0xa47a53));
-   this.population.addChild(entity);this.actors.push({entity,i});
+   entity.zIndex=[293,510,735][i%3];this.population.addChild(entity);this.actors.push({entity,i});
   }
   for(let i=0;i<2;i++){const e=new Container(),sp=sheet(this.assets.atlases?.harbor,3,4,170,132);
    if(sp){const boat=new Sprite(sp);boat.anchor.set(.5,.5);boat.width=84;boat.height=70;e.addChild(boat)}
    else e.addChild(rect(-29,-8,58,16,0x76573b));
-   this.world.addChild(e);this.boats.push({entity:e,i})}
+   e.zIndex=700;this.world.addChild(e);this.boats.push({entity:e,i})}
   this.active=true;this.resize();this.bind();
   this.tickFn=t=>this.tick(t.deltaMS/1000);this.app.ticker.add(this.tickFn);
  }
@@ -123,8 +123,8 @@ export class ColoniaPixi21{
   cv.addEventListener('pointerup',this.up);cv.addEventListener('pointercancel',this.up);
  }
  tick(dt){this.seconds+=Math.min(.07,dt);
-  for(const {entity,i} of this.actors){const span=1150;const a=(i*61+this.seconds*(18+i%6*5))%(span*2);entity.x=a>span?1220-(a-span):70+a;entity.y=[293,510,735][i%3]+Math.sin(this.seconds*6+i)*.7;entity.scale.x=a>span?-1:1}
-  for(const {entity,i} of this.boats){entity.x=1354+Math.sin(this.seconds*.3+i)*20;entity.y=360+((this.seconds*(i?21:30)+i*260)%480)}
+  for(const {entity,i} of this.actors){const span=1150;const a=(i*61+this.seconds*(18+i%6*5))%(span*2);entity.x=a>span?1220-(a-span):70+a;entity.y=[293,510,735][i%3]+Math.sin(this.seconds*6+i)*.7;entity.zIndex=entity.y;entity.visible=!BUILDINGS.some(b=>entity.x>b.x+18&&entity.x<b.x+b.w-18&&entity.y>b.y+22&&entity.y<b.y+b.h-12);entity.scale.x=a>span?-1:1}
+  for(const {entity,i} of this.boats){entity.x=1354+Math.sin(this.seconds*.3+i)*20;entity.y=360+((this.seconds*(i?21:30)+i*260)%480);entity.zIndex=entity.y}
  }
  zoomBy(k){this.zoom=Math.max(.8,Math.min(3,this.zoom*k));this.resize()}
  reset(){this.zoom=1;this.panX=0;this.panY=0;this.resize()}
