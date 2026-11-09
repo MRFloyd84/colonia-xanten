@@ -54,7 +54,7 @@ function tree(x,y,r){
 function paintBase(root){
  root.addChild(rect(0,0,W,H,0x899477));
  root.addChild(rect(0,0,W,200,0x8d9a83));
- for(let i=0;i<85;i++)root.addChild(tree((i*193)%W,38+(i*73)%176,9+i%6*2));
+ // Distant trees are projected separately so their trunks remain upright.
  root.addChild(rect(20,175,1210,708,0xb3a17e));
  root.addChild(rect(1290,175,150,725,0x447d88));
  root.addChild(rect(1258,276,38,624,0x91856b));
@@ -123,6 +123,15 @@ export class ColoniaPixi21{
   this.ground=new Container();this.ground.setFromMatrix(terrainTransform());
   this.ground.zIndex=-1000;this.world.addChild(this.ground);paintBase(this.ground);
   this.paintElevation();
+  // Vegetation has height: only the ground footpoint is projected, never
+  // the tree shape. This prevents flattened circular trees after the tilt.
+  for(let i=0;i<85;i++){
+   const gx=(i*193)%W,gy=38+(i*73)%176;
+   const anchor=project(gx,gy),ps=perspectiveScale(gy);
+   const item=tree(0,0,9+i%6*2);
+   item.position.set(anchor.x,anchor.y);item.scale.set(ps);
+   item.zIndex=anchor.y;this.world.addChild(item);
+  }
   this.hitBuildings=[];
   for(const o of [...houses(),...BUILDINGS].sort((a,b)=>a.y+a.h-b.y-b.h)){
    const model=addBuilding(this.world,o,this.assets,null);
