@@ -62,6 +62,8 @@ def main() -> None:
         "forum": "forum.webp.b64",
         "thermen": "thermen.webp.b64",
         "amphitheater": "amphitheater.webp.b64",
+        "citizens": "citizens.webp.b64",
+        "paving": "paving.webp.b64",
     }
     for key, filename in sprite_files.items():
         placeholder = "__CX_SPRITE_" + key.upper() + "__"
