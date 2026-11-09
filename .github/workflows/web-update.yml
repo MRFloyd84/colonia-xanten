@@ -2,6 +2,8 @@ name: Spiel-Update veröffentlichen
 # Das Spiel bleibt in www/game.html; veröffentlichte Versionen liegen in web/ und update.json.
 on:
   push:
+    branches: [main]
+    paths: ['www/game.html']
     tags: ['web-v*']
   workflow_dispatch:
     inputs:
@@ -29,10 +31,36 @@ jobs:
           INPUT_VERSION: ${{ inputs.version }}
           REF_NAME: ${{ github.ref_name }}
         run: |
-          V="${INPUT_VERSION:-$REF_NAME}"
-          V="${V#web-v}"; V="${V#v}"
+          if [ "${GITHUB_REF#refs/heads/}" = "main" ] && [ -z "$INPUT_VERSION" ]; then
+            V="$(python3 - <<'PY'
+import json
+from pathlib import Path
+m=json.loads(Path('update.json').read_text(encoding='utf-8'))
+last=(m.get('web') or {}).get('version','1.0.0')
+major,minor,patch=map(int,last.split('.'))
+print(f"{major}.{minor}.{patch+1}")
+PY
+)"
+          else
+            V="${INPUT_VERSION:-$REF_NAME}"
+            V="${V#web-v}"; V="${V#v}"
+          fi
           [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Ungültige Version: $V" >&2; exit 1; }
           echo "version=$V" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript auf Syntaxfehler prüfen
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html=Path('www/game.html').read_text(encoding='utf-8')
+          code=re.search(r'<script>([\s\S]*?)</script>',html)
+          if not code: raise SystemExit('Spielskript fehlt')
+          Path('/tmp/colonia-game-check.js').write_text(code.group(1),encoding='utf-8')
+          PY
+          node --check /tmp/colonia-game-check.js
       - name: Spielversion setzen
         env:
           VERSION: ${{ steps.v.outputs.version }}
