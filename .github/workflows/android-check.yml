@@ -24,6 +24,8 @@ jobs:
         run: npm run build:pixi21
       - name: Check PixiJS integration
         run: node tests/pixi21-smoke.mjs
+      - name: Verify oblique camera projection
+        run: node tests/pixi21-perspective.mjs
       - run: npx cap add android
       - run: npx cap sync android
       - name: Cache Gradle dependencies
