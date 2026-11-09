@@ -157,7 +157,8 @@ async function importSave(file){
 
 function toast(message){const el=$('notification');el.textContent=message;el.classList.add('show');clearTimeout(toast.timeout);toast.timeout=setTimeout(()=>el.classList.remove('show'),2500)}
 let opened=null;
-function openSheet(html){$('sheetContent').innerHTML=html;$('sheet').classList.add('open');$('scrim').classList.add('open');$('sheet').setAttribute('aria-hidden','false');$('sheet').scrollTop=0}
+let lastSheetOpen=0;
+function openSheet(html){lastSheetOpen=Date.now();$('sheetContent').innerHTML=html;$('sheet').classList.add('open');$('scrim').classList.add('open');$('sheet').setAttribute('aria-hidden','false');$('sheet').scrollTop=0}
 function closeSheet(){$('sheet').classList.remove('open');$('scrim').classList.remove('open');$('sheet').setAttribute('aria-hidden','true');opened=null;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab==='stadt'))}
 function meter(label,value){return `<div class="meter"><div class="meter-head"><span>${label}</span><b>${Math.round(value)} %</b></div><div class="meter-track"><div class="meter-fill" style="width:${clamp(value)}%"></div></div></div>`}
 // V1.0: Jede Aktion hat eine Abklingzeit in echten Minuten. Das verhindert Klick-Schleifen
@@ -218,14 +219,15 @@ if(window.ColoniaUpdate)window.ColoniaUpdate.onChange(()=>{if(opened==='info')re
 function showInfo(){
  opened='info';const solar=getSolarTimes(new Date());
  const d=solar?`${solar.rise} bis ${solar.set}`:'derzeit nicht verfügbar';
- openSheet(`<span class="kicker">DE REBVS ANTIQVIS</span><h2>Über COLONIA XANTEN</h2><p>Spielerische Rekonstruktion der römischen Colonia Ulpia Traiana um 150 n. Chr.</p><span class="tag">ca. 73 Hektar</span><span class="tag">Römische Stadt</span><div class="notice"><b>Historisch:</b> Architektur, Flusslauf und Gebäudestandorte sind stilisierte Interpretationen; Betriebszahlen, Handel und Verbrauch sind Spielmodelle.</div><div class="divider"></div><span class="kicker">ECHTZEITBETRIEB · XANTEN</span><p>Geräteuhr in der Zeitzone Europe/Berlin. Die astronomisch berechneten Sonnenzeiten berücksichtigen den Kalendertag und die geografische Lage Xantens (51,66° N, 6,45° O).</p><div class="trade-summary"><div><b>${solar?.rise||'–'}</b><small>Sonnenaufgang</small></div><div><b>${solar?.set||'–'}</b><small>Sonnenuntergang</small></div><div><b>1:1</b><small>Echtzeitfaktor</small></div></div><p>Tageslicht heute: ${d}. Getreide wird zu drei täglichen Mahlzeiten ausgegeben; Wasser und Brennstoff werden stündlich verbraucht. Handwerker arbeiten tagsüber; Transporte benötigen reale Stunden.</p><div class="notice"><b>Spielwirtschaft:</b> Getreide −4 Einheiten pro Tag in drei Mahlzeiten (07, 12, 19 Uhr), Holz −2 pro echten 24 Stunden. Wasser fließt abhängig vom Zustand der Leitungen und der Jahreszeit zu; im Sommer wird mehr verbraucht. Gebäude altern täglich (im Winter schneller), und ihr Zustand wirkt auf Stimmung, Ordnung, Vorräte und Einnahmen. Jede Anordnung hat danach eine Pause in echter Zeit. Keine historischen Mengeneinheiten. Bei geschlossener App werden höchstens 48 Stunden nachgeholt. Pause stoppt den Spielbetrieb, nicht Uhr oder Sonnenstand.</div><p class="fine">Offline und ohne Server nutzbar. Die App arbeitet mit deiner Geräteuhr; eine falsch eingestellte Systemzeit beeinflusst den Simulationsverlauf. Bereits gestartete alte Handelsrouten übernehmen ihre Stundenwerte ab der Umstellung.</p><div id="updateBox"></div><div class="divider"></div><span class="kicker">SPIELSTAND SICHERN</span><p class="fine">Fortschritt als JSON-Datei sichern. Beim Import wird der vorhandene Spielstand ersetzt.</p><div class="actions"><button type="button" id="exportSave" class="wide-btn">Spielstand exportieren</button><button type="button" id="importSaveBtn" class="wide-btn">Spielstand importieren</button></div><input id="importSaveFile" type="file" accept=".json,application/json" hidden><div class="divider"></div><button class="wide-btn" id="resetData" type="button">Simulation zurücksetzen</button>`);
+ openSheet(`<span class="kicker">DE REBVS ANTIQVIS</span><h2>Über COLONIA XANTEN</h2><p>Spielerische Rekonstruktion der römischen Colonia Ulpia Traiana um 150 n. Chr.</p><span class="tag">ca. 73 Hektar</span><span class="tag">Römische Stadt</span><div class="notice"><b>Historisch:</b> Architektur, Flusslauf und Gebäudestandorte sind stilisierte Interpretationen; Betriebszahlen, Handel und Verbrauch sind Spielmodelle.</div><div class="divider"></div><span class="kicker">ECHTZEITBETRIEB · XANTEN</span><p>Geräteuhr in der Zeitzone Europe/Berlin. Die astronomisch berechneten Sonnenzeiten berücksichtigen den Kalendertag und die geografische Lage Xantens (51,66° N, 6,45° O).</p><div class="trade-summary"><div><b>${solar?.rise||'–'}</b><small>Sonnenaufgang</small></div><div><b>${solar?.set||'–'}</b><small>Sonnenuntergang</small></div><div><b>1:1</b><small>Echtzeitfaktor</small></div></div><p>Tageslicht heute: ${d}. Getreide wird zu drei täglichen Mahlzeiten ausgegeben; Wasser und Brennstoff werden stündlich verbraucht. Handwerker arbeiten tagsüber; Transporte benötigen reale Stunden.</p><div class="notice"><b>Spielwirtschaft:</b> Getreide −4 Einheiten pro Tag in drei Mahlzeiten (07, 12, 19 Uhr), Holz −2 pro echten 24 Stunden. Wasser fließt abhängig vom Zustand der Leitungen und der Jahreszeit zu; im Sommer wird mehr verbraucht. Gebäude altern täglich (im Winter schneller), und ihr Zustand wirkt auf Stimmung, Ordnung, Vorräte und Einnahmen. Jede Anordnung hat danach eine Pause in echter Zeit. Keine historischen Mengeneinheiten. Bei geschlossener App werden höchstens 48 Stunden nachgeholt. Pause stoppt den Spielbetrieb, nicht Uhr oder Sonnenstand.</div><p class="fine">Offline und ohne Server nutzbar. Die App arbeitet mit deiner Geräteuhr; eine falsch eingestellte Systemzeit beeinflusst den Simulationsverlauf. Bereits gestartete alte Handelsrouten übernehmen ihre Stundenwerte ab der Umstellung.</p><div id="updateBox"></div><div class="divider"></div><span class="kicker">TOUCH-DIAGNOSE</span><p class="fine">Für die Fehleranalyse: Zeigt Gebäude-Trefferflächen gelb an und meldet Berührungen.</p><button type="button" id="touchDiag" class="wide-btn">Touch-Test ein-/ausschalten</button><div class="divider"></div><span class="kicker">SPIELSTAND SICHERN</span><p class="fine">Fortschritt als JSON-Datei sichern. Beim Import wird der vorhandene Spielstand ersetzt.</p><div class="actions"><button type="button" id="exportSave" class="wide-btn">Spielstand exportieren</button><button type="button" id="importSaveBtn" class="wide-btn">Spielstand importieren</button></div><input id="importSaveFile" type="file" accept=".json,application/json" hidden><div class="divider"></div><button class="wide-btn" id="resetData" type="button">Simulation zurücksetzen</button>`);
  renderUpdateBox();
+ $('touchDiag').onclick=()=>enableTouchDiagnostics(!touchDiagnostics);
  $('exportSave').onclick=exportSave;
  $('importSaveBtn').onclick=()=>$('importSaveFile').click();
  $('importSaveFile').onchange=e=>{importSave(e.target.files?.[0]);e.target.value=''};
  $('resetData').addEventListener('click',()=>{if(!confirm('Alle gespeicherten Simulationswerte zurücksetzen?'))return;for(const k of [storageKey,...legacyKeys])localStorage.removeItem(k);location.reload()});
 }
-$('closeSheet').onclick=closeSheet;$('scrim').onclick=closeSheet;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+$('closeSheet').onclick=closeSheet;$('scrim').onclick=()=>{if(Date.now()-lastSheetOpen>650)closeSheet()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));if(b.dataset.tab==='stadt'){closeSheet()}else if(b.dataset.tab==='gebaeude')showList();else if(b.dataset.tab==='handel')showTrade();else if(b.dataset.tab==='chronik')showChronicle();else showInfo()});
 // The display is set to Xanten's actual time zone, not to the visitor's system time zone.
 const clockFormatter=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
@@ -735,7 +737,24 @@ function updateBuildingTargets(){
  buildingTargets.style.display=regionMode?'none':'block';
 }
 const pointers=new Map();
-let gesture=null,lastPointerTap=0;
+let gesture=null,lastPointerTap=0,lastBuildingOpen=0;
+let touchDiagnostics=localStorage.getItem('cx-touch-diag')==='1';
+if(touchDiagnostics)for(const el of targetEls.values()){el.style.background='rgba(249,199,75,.25)';el.style.outline='1px solid #f1ca79'}
+function touchDebug(message){if(touchDiagnostics)toast('TOUCH: '+message)}
+function enableTouchDiagnostics(on){
+ touchDiagnostics=!!on;localStorage.setItem('cx-touch-diag',on?'1':'0');
+ for(const el of targetEls.values()){el.style.background=on?'rgba(249,199,75,.25)':'';el.style.outline=on?'1px solid #f1ca79':''}
+ toast(on?'Touch-Test aktiv: gelbe Flächen antippen':'Touch-Test deaktiviert');
+}
+function openMapBuilding(id,origin){
+ if(!id){touchDebug(origin+': kein Gebäude erkannt');return false}
+ if(Date.now()-lastBuildingOpen<500)return true;
+ lastBuildingOpen=Date.now();
+ touchDebug(origin+': '+defs[id].name);
+ // Open only once the pointer event dispatch has finished.
+ setTimeout(()=>showBuilding(id),0);
+ return true;
+}
 const isMapInput=el=>el===canvas||!!el?.closest?.('.cx-building-target');
 const inputRoot=$('viewport');
 function distance(){const p=[...pointers.values()];return p.length<2?0:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}
@@ -784,7 +803,7 @@ function finishMapPointer(e){
  lastPointerTap=Date.now();
  if(tapped&&!regionMode){
   const id=e.target.closest?.('.cx-building-target')?.dataset.building || buildingAtScreen(e.clientX,e.clientY);
-  if(id)showBuilding(id);
+  openMapBuilding(id,'pointerup');
  }
  if(!pointers.size)gesture=null;
  else if(gesture){gesture.pinch=true;gesture.moved=true}
@@ -795,8 +814,22 @@ inputRoot.addEventListener('pointercancel',finishMapPointer);
 inputRoot.addEventListener('click',e=>{
  if(regionMode||pointers.size||Date.now()-lastPointerTap<700||!isMapInput(e.target))return;
  const id=e.target.closest?.('.cx-building-target')?.dataset.building || buildingAtScreen(e.clientX,e.clientY);
- if(id)showBuilding(id);
+ openMapBuilding(id,'click');
 });
+// Fallback: On some Android WebViews a touch ends with pointercancel instead of pointerup.
+let nativeTouchStart=null;
+inputRoot.addEventListener('touchstart',e=>{
+ if(regionMode||e.touches.length!==1||!isMapInput(e.target)){nativeTouchStart=null;return}
+ const t=e.touches[0];nativeTouchStart={x:t.clientX,y:t.clientY,at:Date.now()};
+},{passive:true});
+inputRoot.addEventListener('touchend',e=>{
+ if(regionMode||!nativeTouchStart||e.changedTouches.length!==1)return;
+ const t=e.changedTouches[0],start=nativeTouchStart;nativeTouchStart=null;
+ if(Date.now()-start.at>700||Math.hypot(t.clientX-start.x,t.clientY-start.y)>16)return;
+ if(Date.now()-lastBuildingOpen<600)return;
+ openMapBuilding(buildingAtScreen(t.clientX,t.clientY),'touchend');
+},{passive:true});
+inputRoot.addEventListener('touchcancel',()=>{nativeTouchStart=null},{passive:true});
 canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();setZoom(zoom*(e.deltaY<0?1.12:.89),e.clientX-r.left,e.clientY-r.top)},{passive:false});
 window.addEventListener('resize',resize);if('ResizeObserver' in window)new ResizeObserver(resize).observe(canvas);
 
