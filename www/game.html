@@ -666,7 +666,7 @@ for(const [id,src] of Object.entries({
 })){
  const img=new Image();
  cityArt[id]={img,ready:false};
- img.onload=()=>{cityArt[id].ready=true;staticKey='';draw()};
+ img.onload=()=>{cityArt[id].ready=true;staticKey='';if(typeof city2CacheKey!=='undefined')city2CacheKey='';draw()};
  img.onerror=()=>{cityArt[id].ready=false};
  if(src.startsWith('data:image/webp;base64,'))img.src=src;
 }
@@ -683,7 +683,7 @@ for(const [id,url,cellW,cellH,cols] of [
  const img=new Image();
  const entry={img,ready:false,cellW,cellH,cols};
  romanAtlas[id]=entry;
- img.onload=()=>{entry.ready=true;staticKey='';draw()};
+ img.onload=()=>{entry.ready=true;staticKey='';if(typeof city2CacheKey!=='undefined')city2CacheKey='';draw()};
  img.onerror=()=>{entry.ready=false};
  if(url.startsWith('data:image/webp;base64,'))img.src=url;
 }
