@@ -64,6 +64,9 @@ def main() -> None:
         "amphitheater": "amphitheater.webp.b64",
         "citizens": "citizens.webp.b64",
         "paving": "paving.webp.b64",
+        "atlas_buildings": "atlas-buildings.webp.b64",
+        "atlas_harbor": "atlas-harbor.webp.b64",
+        "atlas_people": "atlas-people.webp.b64",
     }
     for key, filename in sprite_files.items():
         placeholder = "__CX_SPRITE_" + key.upper() + "__"
