@@ -110,6 +110,51 @@ state.convoys=state.convoys.filter(c=>c&&typeof c==='object'&&typeof c.id==='num
 state.nextConvoyId=Math.max(state.nextConvoyId||1,...state.convoys.map(c=>c.id+1),1);
 function save(){try{localStorage.setItem(storageKey,JSON.stringify(state))}catch{}}
 function clamp(n,a=0,b=100){return Math.min(b,Math.max(a,n))}
+const SAVE_FORMAT='colonia-xanten-save';
+function downloadSave(blob,filename){
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
+ toast('Spielstand erstellt. Bitte im Downloadordner prüfen.');
+}
+function exportSave(){
+ save();
+ const data={format:SAVE_FORMAT,version:1,exportedAt:new Date().toISOString(),save:structuredClone(state)};
+ const json=JSON.stringify(data,null,2);
+ const filename='colonia-xanten-spielstand-'+new Date().toISOString().slice(0,10)+'.json';
+ const blob=new Blob([json],{type:'application/json'});
+ const file=new File([blob],filename,{type:'application/json'});
+ if(navigator.canShare?.({files:[file]})&&navigator.share){
+  navigator.share({files:[file],title:'COLONIA XANTEN Spielstand'}).catch(err=>{
+   if(err?.name!=='AbortError')downloadSave(blob,filename);
+  });
+ }else downloadSave(blob,filename);
+}
+function validSave(data){
+ if(!data||typeof data!=='object'||Array.isArray(data)||data.format!==SAVE_FORMAT||data.version!==1)return false;
+ const s=data.save;
+ if(!s||typeof s!=='object'||Array.isArray(s)||!s.buildings||typeof s.buildings!=='object'||!Array.isArray(s.chronicle))return false;
+ if(!Object.keys(defs).every(id=>s.buildings[id]&&typeof s.buildings[id]==='object'))return false;
+ if(!['grain','wood','water','coins','morale','cityOrder','citySupply'].every(k=>Number.isFinite(s[k])&&s[k]>=0))return false;
+ if(!Array.isArray(s.convoys)||!Array.isArray(s.portQueue))return false;
+ return true;
+}
+async function importSave(file){
+ if(!file)return;
+ if(file.size>2*1024*1024){alert('Spielstand zu groß (maximal 2 MB).');return}
+ let data;
+ try{data=JSON.parse(await file.text())}catch{alert('Die ausgewählte Datei ist kein gültiges JSON.');return}
+ if(!validSave(data)){alert('Die Datei ist kein kompatibler COLONIA-XANTEN-Spielstand. Es wurde nichts verändert.');return}
+ if(!confirm('Aktuellen Spielstand durch die Sicherung vom '+(data.exportedAt||'unbekannten Datum')+' ersetzen?'))return;
+ save();
+ const old=localStorage.getItem(storageKey);
+ try{
+  if(old)localStorage.setItem('colonia-xanten-pre-import-backup',old);
+  localStorage.setItem(storageKey,JSON.stringify(data.save));
+ }catch{alert('Import fehlgeschlagen: Speicher nicht verfügbar.');return}
+ location.reload();
+}
+
 function toast(message){const el=$('notification');el.textContent=message;el.classList.add('show');clearTimeout(toast.timeout);toast.timeout=setTimeout(()=>el.classList.remove('show'),2500)}
 let opened=null;
 function openSheet(html){$('sheetContent').innerHTML=html;$('sheet').classList.add('open');$('scrim').classList.add('open');$('sheet').setAttribute('aria-hidden','false');$('sheet').scrollTop=0}
@@ -173,8 +218,11 @@ if(window.ColoniaUpdate)window.ColoniaUpdate.onChange(()=>{if(opened==='info')re
 function showInfo(){
  opened='info';const solar=getSolarTimes(new Date());
  const d=solar?`${solar.rise} bis ${solar.set}`:'derzeit nicht verfügbar';
- openSheet(`<span class="kicker">DE REBVS ANTIQVIS</span><h2>Über COLONIA XANTEN</h2><p>Spielerische Rekonstruktion der römischen Colonia Ulpia Traiana um 150 n. Chr.</p><span class="tag">ca. 73 Hektar</span><span class="tag">Römische Stadt</span><div class="notice"><b>Historisch:</b> Architektur, Flusslauf und Gebäudestandorte sind stilisierte Interpretationen; Betriebszahlen, Handel und Verbrauch sind Spielmodelle.</div><div class="divider"></div><span class="kicker">ECHTZEITBETRIEB · XANTEN</span><p>Geräteuhr in der Zeitzone Europe/Berlin. Die astronomisch berechneten Sonnenzeiten berücksichtigen den Kalendertag und die geografische Lage Xantens (51,66° N, 6,45° O).</p><div class="trade-summary"><div><b>${solar?.rise||'–'}</b><small>Sonnenaufgang</small></div><div><b>${solar?.set||'–'}</b><small>Sonnenuntergang</small></div><div><b>1:1</b><small>Echtzeitfaktor</small></div></div><p>Tageslicht heute: ${d}. Getreide wird zu drei täglichen Mahlzeiten ausgegeben; Wasser und Brennstoff werden stündlich verbraucht. Handwerker arbeiten tagsüber; Transporte benötigen reale Stunden.</p><div class="notice"><b>Spielwirtschaft:</b> Getreide −4 Einheiten pro Tag in drei Mahlzeiten (07, 12, 19 Uhr), Holz −2 pro echten 24 Stunden. Wasser fließt abhängig vom Zustand der Leitungen und der Jahreszeit zu; im Sommer wird mehr verbraucht. Gebäude altern täglich (im Winter schneller), und ihr Zustand wirkt auf Stimmung, Ordnung, Vorräte und Einnahmen. Jede Anordnung hat danach eine Pause in echter Zeit. Keine historischen Mengeneinheiten. Bei geschlossener App werden höchstens 48 Stunden nachgeholt. Pause stoppt den Spielbetrieb, nicht Uhr oder Sonnenstand.</div><p class="fine">Offline und ohne Server nutzbar. Die App arbeitet mit deiner Geräteuhr; eine falsch eingestellte Systemzeit beeinflusst den Simulationsverlauf. Bereits gestartete alte Handelsrouten übernehmen ihre Stundenwerte ab der Umstellung.</p><div id="updateBox"></div><button class="wide-btn" id="resetData" type="button">Simulation zurücksetzen</button>`);
+ openSheet(`<span class="kicker">DE REBVS ANTIQVIS</span><h2>Über COLONIA XANTEN</h2><p>Spielerische Rekonstruktion der römischen Colonia Ulpia Traiana um 150 n. Chr.</p><span class="tag">ca. 73 Hektar</span><span class="tag">Römische Stadt</span><div class="notice"><b>Historisch:</b> Architektur, Flusslauf und Gebäudestandorte sind stilisierte Interpretationen; Betriebszahlen, Handel und Verbrauch sind Spielmodelle.</div><div class="divider"></div><span class="kicker">ECHTZEITBETRIEB · XANTEN</span><p>Geräteuhr in der Zeitzone Europe/Berlin. Die astronomisch berechneten Sonnenzeiten berücksichtigen den Kalendertag und die geografische Lage Xantens (51,66° N, 6,45° O).</p><div class="trade-summary"><div><b>${solar?.rise||'–'}</b><small>Sonnenaufgang</small></div><div><b>${solar?.set||'–'}</b><small>Sonnenuntergang</small></div><div><b>1:1</b><small>Echtzeitfaktor</small></div></div><p>Tageslicht heute: ${d}. Getreide wird zu drei täglichen Mahlzeiten ausgegeben; Wasser und Brennstoff werden stündlich verbraucht. Handwerker arbeiten tagsüber; Transporte benötigen reale Stunden.</p><div class="notice"><b>Spielwirtschaft:</b> Getreide −4 Einheiten pro Tag in drei Mahlzeiten (07, 12, 19 Uhr), Holz −2 pro echten 24 Stunden. Wasser fließt abhängig vom Zustand der Leitungen und der Jahreszeit zu; im Sommer wird mehr verbraucht. Gebäude altern täglich (im Winter schneller), und ihr Zustand wirkt auf Stimmung, Ordnung, Vorräte und Einnahmen. Jede Anordnung hat danach eine Pause in echter Zeit. Keine historischen Mengeneinheiten. Bei geschlossener App werden höchstens 48 Stunden nachgeholt. Pause stoppt den Spielbetrieb, nicht Uhr oder Sonnenstand.</div><p class="fine">Offline und ohne Server nutzbar. Die App arbeitet mit deiner Geräteuhr; eine falsch eingestellte Systemzeit beeinflusst den Simulationsverlauf. Bereits gestartete alte Handelsrouten übernehmen ihre Stundenwerte ab der Umstellung.</p><div id="updateBox"></div><div class="divider"></div><span class="kicker">SPIELSTAND SICHERN</span><p class="fine">Fortschritt als JSON-Datei sichern. Beim Import wird der vorhandene Spielstand ersetzt.</p><div class="actions"><button type="button" id="exportSave" class="wide-btn">Spielstand exportieren</button><button type="button" id="importSaveBtn" class="wide-btn">Spielstand importieren</button></div><input id="importSaveFile" type="file" accept=".json,application/json" hidden><div class="divider"></div><button class="wide-btn" id="resetData" type="button">Simulation zurücksetzen</button>`);
  renderUpdateBox();
+ $('exportSave').onclick=exportSave;
+ $('importSaveBtn').onclick=()=>$('importSaveFile').click();
+ $('importSaveFile').onchange=e=>{importSave(e.target.files?.[0]);e.target.value=''};
  $('resetData').addEventListener('click',()=>{if(!confirm('Alle gespeicherten Simulationswerte zurücksetzen?'))return;for(const k of [storageKey,...legacyKeys])localStorage.removeItem(k);location.reload()});
 }
 $('closeSheet').onclick=closeSheet;$('scrim').onclick=closeSheet;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
