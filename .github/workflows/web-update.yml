@@ -3,7 +3,7 @@ name: Spiel-Update veröffentlichen
 on:
   push:
     branches: [main]
-    paths: ['www/game.html']
+    paths: ['www/game.html', 'src/pixi21.js', 'scripts/publish_update.py', 'package.json']
     tags: ['web-v*']
   workflow_dispatch:
     inputs:
@@ -46,6 +46,12 @@ jobs:
         run: |
           python3 -c 'from pathlib import Path; import re; s=Path("www/game.html").read_text(); m=re.search(r"<script>(.*?)</script>",s,re.S); assert m,"Spielskript fehlt"; Path("/tmp/colonia-game-check.js").write_text(m.group(1))'
           node --check /tmp/colonia-game-check.js
+      - name: Install JavaScript dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build PixiJS offline bundle
+        run: npm run build:pixi21
+      - name: Verify PixiJS prototype
+        run: node tests/pixi21-smoke.mjs
       - name: Spielversion setzen
         env:
           VERSION: ${{ steps.v.outputs.version }}
