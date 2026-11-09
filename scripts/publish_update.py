@@ -89,7 +89,7 @@ def main() -> None:
         bundle = bundle_path.read_text(encoding="utf-8")
         if not bundle.strip() or "</script" in bundle.lower():
             raise SystemExit("PixiJS-Bundle ist leer oder kann nicht sicher eingebettet werden.")
-        html = html.replace(pixi_marker, "<script>\\n" + bundle + "\\n</script>")
+        html = html.replace(pixi_marker, "<script>\n" + bundle + "\n</script>")
     raw = html.encode("utf-8")
     if meta(html, "cx-web-version", "") != a.version:
         raise SystemExit("Die Version in game.html passt nicht. Zuerst stamp_web_version.py ausführen.")
