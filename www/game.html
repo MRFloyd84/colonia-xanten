@@ -498,12 +498,12 @@ function drawGoodsCaravan(){
 function drawWorkingPopulation(){
  if(!motionEnabled)return;
  const daytime=lightingHour()>=6&&lightingHour()<=19;
- // Auf parallelen, durch die Straßenachsen gedeckten Wegen zur Arbeit.
  const rows=[276,392,508,624],colors=['#6c4b3e','#6e7f66','#8b6c4f','#807493'];
- for(let i=0;i<14;i++){
+ for(let i=0;i<(daytime?17:4);i++){
   const y=rows[i%rows.length],p=(visualSeconds/(88+i%5*13)+i*.193)%1;
   const x=daytime?(i%2?1043-p*779:263+p*779):(i%2?263+p*779:1043-p*779);
-  drawCitizenFigure(x,y,colors[i%colors.length],i%2?Math.PI:0,.96,i*.29);
+  const role=[5,6,7,4,-1,5,8][i%7];
+  drawCitizenFigure(x,y,colors[i%colors.length],i%2?Math.PI:0,.92,i*.29,'walk',role);
  }
 }
 function drawPortSignal(){
@@ -814,7 +814,7 @@ function drawDynamicMap(){
  for(let i=0;i<110;i++){const y=EXT.y0-55+((i*span/110+(i%7)*13+(motionEnabled?visualSeconds*7:0))%span),x=-322+(i%7)*58+Math.sin(i*2.3)*16;if(y<vb.y0-20||y>vb.y1+20)continue;line([[x,y],[x+22,y-4],[x+47,y+2]],'#a8cfca',i%4===0?2.4:1.2)}
  const bspan=EXT.y1-EXT.y0+240;
  for(let j=0;j<8;j++){const speed=[8,-6,4.7,-7,3.2,5.6,-4.4,6.3][j],phase=(visualSeconds*speed+j*331+state.day*17);const y=EXT.y0-120+((phase%bspan)+bspan)%bspan;if(y<vb.y0-80||y>vb.y1+80)continue;const x=-286+(j%3)*100+Math.sin(y*.008+j)*22;drawWake(x,y,speed>0);drawBoat(x,y,speed>0)}
- drawAnimatedCityDetails(vb);drawCitizens();drawWorkingPopulation();drawGoodsCaravan();drawPortSignal();drawSmoke();drawWarnings();drawNightOverlay();
+ drawAnimatedCityDetails(vb);drawCitizens();drawWorkingPopulation();drawHarborPeople(vb);drawGoodsCaravan();drawPortSignal();drawSmoke();drawWarnings();drawNightOverlay();
 }
 // Bewegte Stadt-Details. Sichtfeldprüfung hält die Arbeit auf kleinen Displays gering.
 function drawAnimatedCityDetails(vb){
@@ -845,6 +845,26 @@ function drawAnimatedCityDetails(vb){
   if(v<.55)for(let i=0;i<3;i++){const f=v/.55;ellipse(938+Math.cos(i*2.4)*f*12,320-Math.sin(i*2.1+1)*f*9,1.4*(1-f),1.4*(1-f),'#f7c77f')}
  }
 }
+function drawHarborPeople(vb){
+ // Zusätzlicher Hafenbetrieb an den Kais; Arbeiter warten zwischen zwei Wegen.
+ if(!motionEnabled||lightingHour()<6||lightingHour()>20||!inView(150,540,130,vb))return;
+ for(let i=0;i<5;i++){
+  const y=494+i*42;
+  const x=140+Math.sin(visualSeconds*.21+i*1.8)*13;
+  const role=[5,6,7,4,8][i];
+  ctx.save();
+  ctx.translate(x,y);
+  ellipse(0,1,5,2,'rgba(24,24,24,.26)');
+  const a=romanAtlas.people;
+  if(a?.ready){
+   const idx=role,bob=Math.abs(Math.sin(visualSeconds*4.6+i))*.6;
+   ctx.drawImage(a.img,(idx%4)*64,Math.floor(idx/4)*88,64,88,-10,-23-bob,20,24);
+  }else{
+   ctx.fillStyle='#79604b';ctx.fillRect(-2,-12,4,12);
+  }
+  ctx.restore();
+ }
+}
 function drawWarnings(){
  if(!problemIds.size)return;const pulse=.72+.28*Math.sin(visualSeconds*3.2);
  for(const id of problemIds){const d=defs[id];const x=d.x+d.w+6,y=d.y-8;ctx.save();ctx.globalAlpha=pulse;ellipse(x,y,12,12,'#c8664a');ctx.globalAlpha=1;ctx.strokeStyle='#ffe6c4';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,12,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#fff3df';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',x,y+1);ctx.restore()}
@@ -866,47 +886,74 @@ function pedestrianOnStreet(x,y){
  }
  return true;
 }
-function drawCitizenFigure(x,y,color,angle=0,scale=1,phase=0,activity='walk'){
+// Personenatlas: 0 Wache, 1 Bürger, 2 Bürgerin, 3 Beamter,
+// 4 Händler, 5-7 Arbeiter, 8 Marktfrau, 9 Kind.
+// Der ältere 8-Frame-Gehzyklus bleibt für laufende erwachsene Männer erhalten.
+function drawCitizenFigure(x,y,color,angle=0,scale=1,phase=0,activity='walk',role=-1){
  if(!pedestrianOnStreet(x,y))return;
- const art=cityArt.citizens;
- const walking=activity==='walk'&&motionEnabled;
- if(art?.ready){
-  const frame=walking?Math.floor((visualSeconds*6+phase*8)%8):0;
-  const h=23*scale,w=18*scale;
-  ctx.save();ctx.translate(x,y);
-  // Figur bleibt immer aufrecht; Spiegelung nach links statt Rotation um 90°.
-  if(Math.cos(angle)<-.35)ctx.scale(-1,1);
-  ellipse(0,0,7*scale,2.4*scale,'rgba(36,32,25,.36)');
-  ctx.drawImage(art.img,frame*64,0,64,80,-w/2,-h+1,w,h);
-  ctx.restore();
-  return;
- }
- // Falls das Sprite nicht geladen werden kann, bleibt die bisherige Figur sichtbar.
+ const moving=activity==='walk'&&motionEnabled;
+ const bob=moving?Math.abs(Math.sin(visualSeconds*7+phase*6.28))*.65:0;
+ const h=role===9?15*scale:23*scale,w=role===9?11*scale:18*scale;
  ctx.save();ctx.translate(x,y);
- ellipse(0,1,4.6*scale,2.1*scale,'rgba(36,32,25,.32)');
- const step=walking?Math.sin(visualSeconds*9+phase*6.28)*2:0;
+ if(Math.cos(angle)<-.35)ctx.scale(-1,1);
+ ellipse(0,1,Math.max(3,5*scale),1.9*scale,'rgba(34,30,25,.28)');
+ if(role>=0&&romanAtlas.people?.ready){
+  // Jede Figur steht auf demselben Bodenanker. Kleine vertikale Schrittbewegung
+  // und variierende Geschwindigkeit geben den Standbildern Leben.
+  const a=romanAtlas.people,idx=Math.min(9,role);
+  const stride=moving?Math.sin(visualSeconds*6+phase*6.28)*.025:0;
+  ctx.translate(0,-bob);
+  ctx.transform(1,0,stride,1,0,0);
+  ctx.drawImage(a.img,(idx%4)*64,Math.floor(idx/4)*88,64,88,-w/2,-h+1,w,h);
+  ctx.restore();return;
+ }
+ const art=cityArt.citizens;
+ if(art?.ready){
+  const frame=moving?Math.floor((visualSeconds*6+phase*8)%8):0;
+  ctx.drawImage(art.img,frame*64,0,64,80,-w/2,-h+1-bob,w,h);
+  ctx.restore();return;
+ }
  ctx.scale(scale,scale);line([[0,-10],[0,-3]],color,2.5);
- line([[0,-4],[-2+step,0]],'#604b38',1.5);
- line([[0,-4],[2-step,0]],'#604b38',1.5);
  ellipse(0,-13,2.4,2.6,'#e0b892');ctx.restore();
 }
 function drawCitizens(){
- // Waagerechte Wege: vollständig frei von diagonalen Abkürzungen.
  const lanes=[160,392,508,624,740];
  const colors=['#9c5841','#e2d3b4','#58705c','#7b6554','#a29b80','#856f9d'];
- for(let i=0;i<32;i++){
+ // Tageslicht: dichtes Stadtleben; nachts deutlich weniger Passanten.
+ const day=lightingHour()>=6&&lightingHour()<=21;
+ const count=day?40:9;
+ for(let i=0;i<count;i++){
   const y=lanes[i%lanes.length];
-  const speed=75+(i%6)*13,phase=(visualSeconds/speed+i*.137)%1;
+  const speed=80+(i%6)*16,phase=(visualSeconds/speed+i*.137)%1;
   const x=i%2?1050-phase*790:259+phase*790;
-  drawCitizenFigure(x,y,colors[i%colors.length],i%2?Math.PI:0,.94+(i%3)*.05,i*.17);
+  const role=[-1,2,4,8,-1,9,3,1,-1,2,9,0][i%12];
+  const scale=(role===9?.76:.89)+(i%3)*.052;
+  drawCitizenFigure(x,y,colors[i%colors.length],i%2?Math.PI:0,scale,i*.17,'walk',role);
  }
- // Wagen bleiben auf der Marktstraße und werden nur angezeigt, wo die Straße frei ist.
+ // Patrouillen auf Nord- und Südstraße.
+ for(let i=0;i<4;i++){
+  const y=i%2?740:160,x=283+((visualSeconds/1.3+i*199)%725);
+  drawCitizenFigure(x,y,'#a84731',0,1.06,i*.27,'walk',0);
+ }
+ // Markt und Hafen: kleine Gruppen, die sich auf kurzen Wegen bewegen.
+ if(day)for(let i=0;i<8;i++){
+  const y=i%2?508:392,range=i%2?250:180;
+  const x=(i%2?510:550)+(Math.sin(visualSeconds*.13+i*2.3)+1)*range*.5;
+  const role=[8,2,4,5,9,8,1,6][i];
+  drawCitizenFigure(x,y,'#b58e65',i%2?Math.PI:0,role===9?.77:.92,i*.31,'walk',role);
+ }
+ // Karren bleiben auf der Marktstraße.
  for(let i=0;i<3;i++){
   const phase=(visualSeconds/66+i*.31)%1,x=275+phase*750,y=508;
   if(!pedestrianOnStreet(x,y))continue;
-  ctx.save();ctx.translate(x,y);ellipse(1,3,12,3.5,'rgba(40,35,25,.29)');
-  fillRect(-8,-6,16,9,'#96744d');fillRect(-2,-12,8,7,'#b18b60');
-  ellipse(-6,5,3.5,3.5,'#514a3c');ellipse(6,5,3.5,3.5,'#514a3c');ctx.restore();
+  ctx.save();ctx.translate(x,y);
+  ellipse(1,3,12,3.5,'rgba(40,35,25,.29)');
+  // Variationen im Warenverkehr aus dem Hafenatlas (Karren).
+  if(!drawRomanAtlas('harbor',5,-14,-17,27,19)){
+   fillRect(-8,-6,16,9,'#96744d');
+   ellipse(-6,5,3.5,3.5,'#514a3c');ellipse(6,5,3.5,3.5,'#514a3c');
+  }
+  ctx.restore();
  }
 }
 function drawSmoke(){
