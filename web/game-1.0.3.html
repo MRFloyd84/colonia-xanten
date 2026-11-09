@@ -1,0 +1,1044 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171c19">
+  <meta name="cx-web-version" content="1.0.3">
+  <meta name="cx-min-shell" content="1">
+  <meta name="description" content="COLONIA XANTEN: eine interaktive historische Stadtkarte mit Gebäudesimulation.">
+  <style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eee8d9;background:#171c19;font-synthesis:none}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overscroll-behavior:none}button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible{outline:2px solid #efd29a;outline-offset:3px}.app{height:100dvh;min-height:480px;display:flex;flex-direction:column;overflow:hidden;background:#171c19}.topbar{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 12px) 17px 12px;background:#1c231f;border-bottom:1px solid #444d40;z-index:2;flex:none}.brand .eyebrow{display:block;color:#baaa85;font-size:9px;letter-spacing:2.5px;font-weight:700}.brand h1{font-family:Georgia,serif;font-size:23px;letter-spacing:1.2px;margin:4px 0 2px;line-height:1;color:#f5e9d0}.brand em{font-weight:normal;color:#cfab6c;font-style:normal}.era{font-size:9px;letter-spacing:1.2px;color:#a0a79b}.clock{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:64px;color:#e6d6b6}.clock b{font-size:18px;font-variant-numeric:tabular-nums}.clock small{font-size:9px;letter-spacing:1px;color:#a2a797}.sun{color:#eac47d;font-size:14px}.viewport{flex:1;min-height:0;position:relative;overflow:hidden;background:#859375;touch-action:none}canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}.cx-building-targets{position:absolute;inset:0;pointer-events:none;z-index:2}.cx-building-target{position:absolute;pointer-events:auto;touch-action:none;appearance:none;border:0;padding:0;margin:0;background:transparent;border-radius:10px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}.cx-building-target:focus-visible{outline:2px solid #f4d18a;outline-offset:2px}.cx-building-target:active{background:#f5e8ae24}canvas:active{cursor:grabbing}.map-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(17,27,22,.24),transparent 27%,transparent 72%,rgba(20,29,22,.15))}.map-title{pointer-events:none;position:absolute;left:18px;top:16px;display:flex;flex-direction:column;color:#f7e8c3;text-shadow:0 2px 8px #273523;letter-spacing:2px;font-family:Georgia,serif;font-size:13px}.map-title strong{font-size:23px;letter-spacing:3px}.map-title-line{display:block;width:33px;border-top:2px solid #d9bd83;margin-bottom:7px}.map-controls{position:absolute;right:12px;top:18px;display:flex;flex-direction:column;gap:5px}.map-controls button,.play{width:37px;height:37px;border:1px solid #d5c49e83;background:#202820db;color:#f1e3c5;border-radius:8px;font-size:23px;box-shadow:0 4px 9px #0002}.map-controls button:active,.play:active{background:#58654b}.map-help{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:#f5e9d2;background:#1c271ddc;border-radius:20px;padding:8px 12px;max-width:96%;text-align:center;pointer-events:none}.map-compass{position:absolute;bottom:57px;right:16px;display:flex;flex-direction:column;align-items:center;color:#f5e7c4;text-shadow:0 1px 5px #171c19}.map-compass span{font-size:10px;font-weight:bold}.map-compass b{font-size:26px}.status-strip{display:grid;grid-template-columns:1fr 1fr 1fr 41px;gap:7px;padding:12px 13px;background:#242b25;border-top:1px solid #4b5446;align-items:center;flex:none}.status-strip div{border-right:1px solid #505749;min-width:0}.status-strip span{display:block;font-size:9px;color:#b4b6a3;letter-spacing:.7px}.status-strip strong{display:block;margin-top:3px;font-size:15px;font-weight:650;color:#ecdbaf}.play{height:35px;width:35px;font-size:16px}.bottom-nav{display:grid;grid-template-columns:repeat(5,1fr);background:#171c19;padding:8px 8px calc(9px + env(safe-area-inset-bottom));gap:3px;border-top:1px solid #40483f;flex:none}.bottom-nav button{border:0;background:transparent;color:#9ba397;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;padding:4px}.bottom-nav button span{font-size:22px}.bottom-nav button.active{color:#e8c47a}.sheet-scrim{position:fixed;inset:0;background:#070b08a6;z-index:4;opacity:0;pointer-events:none;transition:opacity .22s}.sheet-scrim.open{opacity:1;pointer-events:auto}.sheet{position:fixed;bottom:0;left:0;right:0;max-width:700px;margin:auto;max-height:min(79dvh,800px);overflow-y:auto;overscroll-behavior:contain;transform:translateY(105%);transition:transform .26s ease;background:#242b25;border:1px solid #68715d;border-bottom:0;border-radius:19px 19px 0 0;box-shadow:0 -15px 60px #0007;z-index:5;padding:12px 20px calc(25px + env(safe-area-inset-bottom));color:#eee8d9}.sheet.open{transform:translateY(0)}.sheet-handle{width:42px;height:4px;border-radius:4px;background:#77806f;margin:-2px auto 18px}.sheet-close{position:absolute;right:16px;top:13px;width:32px;height:32px;background:#364136;border:0;border-radius:9px;color:#f5e7d0}.sheet .kicker{font-size:10px;letter-spacing:2px;color:#d9b775;font-weight:700}.sheet h2{font-family:Georgia,serif;font-size:27px;margin:6px 30px 8px 0;color:#f5e7c8;font-weight:normal}.sheet p{color:#d2d4c8;font-size:14px;line-height:1.55;margin:8px 0 15px}.sheet .fine{font-size:11px;color:#aeb3a3}.meter{margin:17px 0}.meter-head{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}.meter-head b{font-variant-numeric:tabular-nums;color:#e5cb93}.meter-track{height:8px;background:#465045;border-radius:9px;overflow:hidden}.meter-fill{height:100%;background:linear-gradient(90deg,#82986c,#d0b16e);border-radius:9px}.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:16px}.actions button,.wide-btn{border:1px solid #b9a377;background:#4b5140;color:#fff0d2;font-size:13px;font-weight:650;padding:13px 9px;border-radius:10px}.actions button:disabled{opacity:.45;cursor:default}.actions button:active,.wide-btn:active{background:#6b7554}.divider{height:1px;background:#586050;margin:18px 0}.list-button{display:flex;width:100%;padding:14px 4px;gap:12px;align-items:center;text-align:left;border:0;border-bottom:1px solid #455044;background:transparent;color:#f2e6cd}.list-button .mini-icon{width:36px;height:36px;background:#3a463a;border-radius:9px;display:grid;place-items:center;color:#eac47d;font-size:20px}.list-button b{display:block;font-family:Georgia,serif;font-size:16px;font-weight:normal}.list-button small{color:#b0b7a5}.list-button .arrow{margin-left:auto;font-size:23px;color:#e4cb96}.chronicle{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid #475043;font-size:13px}.chronicle time{color:#d3b478;font-size:11px;white-space:nowrap;font-weight:bold}.chronicle span{color:#d8d9cb;line-height:1.45}.tag{font-size:11px;display:inline-block;padding:5px 8px;border:1px solid #646f5b;border-radius:5px;color:#ddc78d;margin:0 5px 8px 0}.notice{background:#323d32;border-left:3px solid #c8ad71;padding:12px;border-radius:5px;color:#e8dfca;font-size:12px;line-height:1.55}.notification{position:absolute;top:15px;left:50%;transform:translate(-50%,-12px);opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;color:#fff0d2;background:#263525ef;padding:10px 15px;max-width:80%;text-align:center;border:1px solid #b69d6c;border-radius:9px;font-size:12px;z-index:3}.notification.show{opacity:1;transform:translate(-50%,0)}@media(min-width:700px){.app{max-width:760px;margin:0 auto;border-left:1px solid #555;border-right:1px solid #555}.brand h1{font-size:27px}.status-strip{padding:13px 25px}.map-help{font-size:12px}}@media(max-height:610px){.topbar{padding-top:8px;padding-bottom:7px}.brand h1{font-size:20px}.status-strip{padding:6px 10px}.bottom-nav{padding-top:3px}.map-help{bottom:7px}}
+
+.resource-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:#101611;border-top:1px solid #6c624b}.resource-strip div{padding:7px 2px;text-align:center;background:#253027;min-width:0}.resource-strip span{display:block;font-size:8px;color:#c6b58a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.resource-strip b{display:block;font-size:13px;color:#f3e5c9;margin-top:3px}.map-title{top:13px}.map-help{bottom:8px}@media(max-height:650px){.resource-strip div{padding:4px 2px}.resource-strip span{font-size:7px}.resource-strip b{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.sheet,.sheet-scrim,.notification{transition:none}}
+
+.season-tag{position:absolute;left:14px;top:63px;z-index:2;font-size:10px;font-weight:750;letter-spacing:1px;color:#f4e2bc;background:#1d2b24e4;border:1px solid #c6aa7799;padding:6px 9px;border-radius:8px;pointer-events:none}.region-view.active~.season-tag{top:100px}
+/* REGIO RHENI · regional overlay */
+.region-view{position:absolute;inset:0;z-index:1;background:#879577;display:none;touch-action:none}.region-view.active{display:block}.region-view canvas{width:100%;height:100%;display:block;touch-action:none}.region-switch{position:absolute;z-index:2;top:18px;left:14px;max-width:195px;border:1px solid #d5bc83;background:#202820e9;color:#f4e4c5;padding:10px 13px;border-radius:9px;font:700 11px system-ui;letter-spacing:.5px;box-shadow:0 4px 12px #121b1459}.region-switch.active{background:#b79559;color:#1c241d}.region-info{position:absolute;z-index:2;left:14px;bottom:48px;pointer-events:none;background:#202820db;border:1px solid #b8a06b99;border-radius:9px;padding:9px 12px;color:#f6e9cc;font:11px system-ui;max-width:67%;display:none}.region-info.active{display:block}.region-info b{display:block;font:17px Georgia,serif;margin-bottom:3px}.region-legend{position:absolute;z-index:2;left:13px;top:62px;display:none;gap:5px;flex-wrap:wrap;max-width:65%}.region-legend.active{display:flex}.region-legend span{padding:5px 6px;background:#1e2b22d9;color:#e7dab9;border-radius:4px;font:10px system-ui}.map-title{display:none}.map-controls{z-index:3}.region-switch{z-index:4}
+
+.time-option{display:flex;align-items:center;gap:12px;border:1px solid #5c6b57;background:#334035;padding:13px;border-radius:9px;margin:10px 0 18px}.time-option input{width:20px;height:20px;accent-color:#e0bf7a}.time-option span b{display:block;font-size:13px}.time-option span small{display:block;color:#b9c2b2;font-size:11px;margin-top:4px}
+/* TRADE V0.5 */
+.trade-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:13px 0}.trade-summary div{background:#364137;border:1px solid #59664f;border-radius:8px;padding:9px 6px;text-align:center}.trade-summary b{display:block;color:#f0d49a;font-size:19px}.trade-summary small{display:block;color:#b8c2b0;font-size:10px}.trade-route{padding:13px 0;border-bottom:1px solid #4d5b4b}.trade-route h3{margin:0 0 5px;color:#f0d8ac;font:19px Georgia,serif}.trade-route p{font-size:12px;margin:5px 0 8px}.trade-route .route-details{display:flex;flex-wrap:wrap;gap:6px}.trade-route .route-details span{font-size:10px;padding:4px 7px;border-radius:5px;background:#38463a;color:#e5d4ae}.trade-route button{padding:10px 12px;background:#566246;color:#f7ead1;border:1px solid #ab9669;border-radius:8px;margin:8px 6px 0 0;font-size:12px}.trade-route button:disabled{opacity:.42}.trade-badge{display:inline-block;padding:4px 7px;border-radius:5px;background:#504332;color:#f3d39b;font-size:10px}.trip-meter{height:7px;overflow:hidden;background:#465544;border-radius:8px;margin:8px 0}.trip-meter>div{height:100%;background:#d2b17a}.logistics-options{display:grid;gap:9px;margin:14px 0}.logistics-options label{display:flex;align-items:flex-start;gap:12px;padding:12px;background:#344035;border:1px solid #596750;border-radius:10px}.logistics-options input{width:21px;height:21px;flex:none;accent-color:#d2b17a;margin:2px 0}.logistics-options b{display:block;color:#eee0c0;font-size:13px}.logistics-options small{display:block;color:#bfc6b6;line-height:1.45;margin-top:4px}.trade-alert{background:#46362c;border-left:3px solid #bf9960;padding:10px;font-size:12px;color:#f0dac1;margin:10px 0}
+/* V1.0 · Abklingzeiten und Auswirkungen */
+.actions button small{display:block;font-size:10px;font-weight:500;color:#d3c39f;margin-top:4px;letter-spacing:.2px}.actions button.cooling{background:#363b31;border-color:#6f6750}
+.effects{margin:6px 0 2px}.effect{font-size:12px;padding:8px 10px;border-radius:6px;margin:6px 0;line-height:1.45}.effect.bad{background:#4a3229;border-left:3px solid #d0805f;color:#f3d8c8}.effect.good{background:#2f4430;border-left:3px solid #8fb36f;color:#dfead0}.effect.info{background:#323d32;border-left:3px solid #8c967f;color:#dcd9c8}
+</style>
+  <title>COLONIA XANTEN · 150 n. Chr. · v1.0.3</title>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand"><span class="eyebrow">COLONIA VLPIA TRAIANA</span><h1>COLONIA <em>XANTEN</em></h1><span class="era">GERMANIA INFERIOR · 150 N. CHR.</span></div>
+    <div class="clock"><span class="sun" id="sunIcon">☀</span><b id="clockValue">08:00</b><small id="clockDay">DIES I</small></div>
+  </header>
+  <main class="viewport" id="viewport">
+    <canvas id="mapCanvas" aria-label="Interaktive, schematische römische Stadtkarte"></canvas><div class="region-view" id="regionView"><canvas id="regionCanvas" aria-label="Historische Umgebung bis 50 Kilometer um Xanten, angenäherte Lage"></canvas></div><button type="button" class="region-switch" id="regionSwitch">◈ REGION · 50 KM</button><div class="region-info" id="regionInfo"><b>REGIO RHENI</b>Historische Landschaft · um 150 n. Chr.</div><div class="region-legend" id="regionLegend"><span>◆ Römisch</span><span>◇ Ruine</span><span>≈ Fluss</span><span>⋯ Straßen</span></div>
+    <div class="map-shade"></div><div class="season-tag" id="seasonTag" aria-live="off">☀ SOMMER</div>
+    <div class="map-title"><span class="map-title-line"></span><span>COLONIA</span><strong>URBS VIVA</strong></div>
+    <div class="map-controls">
+      <button type="button" id="zoomIn" aria-label="Vergrößern">+</button>
+      <button type="button" id="zoomOut" aria-label="Verkleinern">−</button>
+      <button type="button" id="resetView" aria-label="Ansicht zentrieren">⌖</button>
+      <button type="button" id="motionToggle" aria-label="Animation ausschalten" title="Animation an/aus">◉</button>
+    </div>
+    <div class="map-help" id="mapHelp">Schiffe fahren · Bürger bewegen sich · Gebäude antippen</div>
+    <div class="map-compass"><span>N</span><b>✦</b></div>
+    <div class="notification" id="notification" role="status" aria-live="polite"></div>
+  </main>
+  <section class="resource-strip" aria-label="Ressourcen"><div><span>🌾 GETREIDE</span><b id="grainValue">76</b></div><div><span>🪵 HOLZ</span><b id="woodValue">65</b></div><div><span>💧 WASSER</span><b id="waterValue">87</b></div><div><span>◈ MÜNZEN</span><b id="coinsValue">120</b></div><div><span>♥ STIMMUNG</span><b id="moraleValue">79%</b></div></section>
+  <section class="status-strip" aria-label="Stadtstatus">
+    <div><span>BEVÖLKERUNG</span><strong>~ 10.000</strong></div>
+    <div><span>VERSORGUNG</span><strong id="citySupply">82%</strong></div>
+    <div><span>ORDNUNG</span><strong id="cityOrder">94%</strong></div>
+    <button type="button" class="play" id="toggleTime" aria-label="Zeit anhalten">Ⅱ</button>
+  </section>
+  <nav class="bottom-nav" aria-label="Hauptnavigation">
+    <button class="active" data-tab="stadt" type="button"><span>▦</span>Stadt</button>
+    <button data-tab="gebaeude" type="button"><span>▤</span>Gebäude</button>
+    <button data-tab="handel" type="button"><span>⚓</span>Handel</button>
+    <button data-tab="chronik" type="button"><span>◷</span>Chronik</button>
+    <button data-tab="info" type="button"><span>ⓘ</span>Info</button>
+  </nav>
+  <div class="sheet-scrim" id="scrim"></div>
+  <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="sheetTitle">
+    <div class="sheet-handle"></div><button class="sheet-close" id="closeSheet" aria-label="Schließen">✕</button>
+    <div id="sheetContent"></div>
+  </section>
+</div>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const canvas = $('mapCanvas'), mainCtx = canvas.getContext('2d');
+let ctx = mainCtx; // wird beim Rendern der statischen Ebene kurz auf den Offscreen-Kontext umgeschaltet
+const storageKey = 'colonia-xanten-v10';
+const legacyKeys = ['colonia-xanten-v09','colonia-xanten-v08','colonia-xanten-v07','colonia-xanten-v06','colonia-xanten-v05','colonia-xanten-v04','colonia-xanten-v03','colonia-xanten-v02'];
+const defs = {
+ thermen:{name:'Die Großen Thermen',subtitle:'BALNEA · BADEKULTUR',icon:'♨',x:668,y:284,w:103,h:88,desc:'Die großen öffentlichen Thermen gehörten zum städtischen Leben. Warme Räume wurden über ein Hypokaustensystem beheizt. Hier verwaltest du einen vereinfachten, fiktiven Betrieb.',stats:[['Wärme','heat'],['Brennstoff','fuel'],['Gebäudezustand','condition']],actions:[['Feuerung verstärken','fire'],['Brennstoff liefern','refuel']]},
+ amphitheater:{name:'Amphitheater',subtitle:'AMPHITHEATRVM · VERANSTALTUNGEN',icon:'◉',x:309,y:279,w:114,h:87,desc:'Das Amphitheater bot Raum für öffentliche Schauspiele. Die angezeigten Betriebsvorgänge sind ein Spielmodell, keine überlieferten Tagesberichte.',stats:[['Besucherinteresse','visitors'],['Gebäudezustand','condition'],['Versorgung','supplies']],actions:[['Veranstaltung planen','event'],['Arena instand setzen','repair']]},
+ forum:{name:'Forum',subtitle:'FORVM · STADTVERWALTUNG',icon:'▥',x:548,y:403,w:107,h:89,desc:'Das Forum war ein zentraler Ort für Politik, Verwaltung und öffentliches Leben der römischen Stadt.',stats:[['Öffentliche Ordnung','order'],['Marktaktivität','market'],['Gebäudezustand','condition']],actions:[['Markttag ausrufen','market'],['Wache verstärken','guards']]},
+ hafen:{name:'Rheinhafen',subtitle:'PORTVS · HANDEL',icon:'⚓',x:107,y:487,w:128,h:111,desc:'Der Hafen verband die Siedlung mit dem Handel entlang des Rheins. Schiffsladungen werden nach der Ankunft zunächst am Kai entladen und in die Stadt gebracht. Mengen und Zeiten sind simuliert.',stats:[['Warenbestand','supplies'],['Handelsaktivität','market'],['Anlagenzustand','condition']],actions:[['Handelsschiff abfertigen','trade'],['Lager reparieren','repair']]},
+ tempel:{name:'Hafentempel',subtitle:'TEMPLVM · KULT',icon:'⌂',x:788,y:524,w:99,h:93,desc:'Der rekonstruierte Hafentempel ist eines der markanten Bauwerke des Archäologischen Parks. Hier lassen sich religiöse und öffentliche Aktivitäten anschaulich erkunden.',stats:[['Besucherinteresse','visitors'],['Gebäudezustand','condition'],['Öffentliche Ordnung','order']],actions:[['Festtag vorbereiten','festival'],['Gebäude pflegen','repair']]},
+ lager:{name:'Getreidespeicher',subtitle:'HORREA · LAGERUNG',icon:'▤',x:412,y:179,w:90,h:75,desc:'Speicherhäuser sichern die städtische Versorgung. Im Spiel werden Getreidebestände regelmäßig verbraucht und durch Schiffe ergänzt.',stats:[['Lagerzustand','condition'],['Warenbewegung','market'],['Vorrat','supplies']],actions:[['Getreide verteilen','distribute'],['Lager ertüchtigen','repair']]},
+ werkstatt:{name:'Handwerkerviertel',subtitle:'OFFICINAE · HANDWERK',icon:'⚒',x:890,y:287,w:96,h:80,desc:'Handwerk und Reparaturen brauchen Rohstoffe. Mit Holz und Münzen lassen sich Werkzeuge und städtische Bauten instand halten.',stats:[['Produktivität','market'],['Gebäudezustand','condition'],['Materialreserve','supplies']],actions:[['Produktion steigern','craft'],['Werkstatt reparieren','repair']]},
+ tor:{name:'Nordtor',subtitle:'PORTA · STADTMAUER',icon:'⚑',x:585,y:115,w:86,h:55,desc:'Die Tore kontrollieren den Waren- und Personenverkehr. Im Simulationsmodell verbessern zusätzliche Wachen die öffentliche Ordnung.',stats:[['Sicherheit','order'],['Gebäudezustand','condition'],['Handelsverkehr','market']],actions:[['Patrouille einteilen','patrol'],['Tor instand setzen','repair']]},
+ insula:{name:'Wohnviertel',subtitle:'INSVLAE · ALLTAG',icon:'⌑',x:901,y:648,w:95,h:78,desc:'In den Häusern der Stadt leben Handwerker, Familien und Händler. Versorgung und Versorgungssicherheit bestimmen die Stimmung.',stats:[['Lebensqualität','order'],['Gebäudezustand','condition'],['Aktivität','visitors']],actions:[['Lebensmittel ausgeben','rations'],['Häuser reparieren','repair']]},
+ wasser:{name:'Wasseranlagen',subtitle:'AQVA · VERSORGUNG',icon:'≈',x:424,y:663,w:95,h:76,desc:'Wasserleitungen und Verteilung sind lebenswichtig. Das Spiel nutzt vereinfachte Wasserwerte, keine Rekonstruktion eines konkreten Leitungsnetzes.',stats:[['Anlagenzustand','condition'],['Versorgungsleistung','heat'],['Arbeitsbereitschaft','order']],actions:[['Leitungen warten','aqueduct'],['Wasserzuteilung','water']]},
+ herberge:{name:'Herberge',subtitle:'HOSPITIVM · REISENDE',icon:'♜',x:776,y:176,w:86,h:74,desc:'Eine exemplarische Unterkunft für Kaufleute und Reisende. Die hier gezeigte Lage ist nicht archäologisch gesichert.',stats:[['Gäste','visitors'],['Gebäudezustand','condition'],['Betrieb','market']],actions:[['Gäste bewirten','host'],['Herberge sanieren','repair']]}
+
+};
+const defaults={day:1,hour:8,paused:false,citySupply:82,cityOrder:94,grain:76,wood:65,water:87,coins:120,morale:79,boats:2,deliveries:0,animation:true,speed:1,convoys:[],nextConvoyId:1,tradeReputation:50,autoTrade:false,autoWorkshop:true,autoWarehouse:true,portQueue:[],jobsCompleted:0,lastAutoDispatchDay:0,realtime:true,lastRealTick:0,lastCalendarDay:"",totalMeals:0,offlineHours:0,cooldowns:{},alerts:{},chronicle:[],buildings:{}};
+const FIRST_LOG={time:'DIES I · 08:00',text:'Die Colonia erwacht. Händler öffnen ihre Stände und die ersten Badegäste treffen ein.'};
+for(const id of Object.keys(defs))defaults.buildings[id]={heat:62,fuel:74,condition:88,visitors:68,supplies:81,order:94,market:72};
+let state;
+try{let raw=localStorage.getItem(storageKey);if(!raw)for(const k of legacyKeys){raw=localStorage.getItem(k);if(raw)break}const saved=JSON.parse(raw||'null');state={...defaults,...saved,buildings:{...defaults.buildings,...(saved?.buildings||{})}};for(const id of Object.keys(defs))state.buildings[id]={...defaults.buildings[id],...(state.buildings[id]||{})};}catch{state=structuredClone(defaults)}
+if(!Array.isArray(state.convoys))state.convoys=[];
+// v1.0: Chronik, Abklingzeiten und Warnzustände werden mitgespeichert.
+state.chronicle=Array.isArray(state.chronicle)&&state.chronicle.length?state.chronicle.filter(e=>e&&typeof e.text==='string').slice(-80):[{...FIRST_LOG}];
+if(!state.cooldowns||typeof state.cooldowns!=='object'||Array.isArray(state.cooldowns))state.cooldowns={};
+if(!state.alerts||typeof state.alerts!=='object'||Array.isArray(state.alerts))state.alerts={};
+state.realtime=true; // v0.9: Uhr, Jahreszeit und Wirtschaft sind konsistent in Echtzeit.
+if(!Number.isFinite(state.lastRealTick)||state.lastRealTick<=0)state.lastRealTick=Date.now();
+if(typeof state.lastCalendarDay!=='string')state.lastCalendarDay='';
+if(!Number.isFinite(state.totalMeals))state.totalMeals=0;
+
+if(!Array.isArray(state.portQueue))state.portQueue=[];
+state.portQueue=state.portQueue.filter(q=>q&&['wood','grain','coins'].includes(q.resource)&&Number.isFinite(q.amount)&&q.amount>0);
+
+state.convoys=state.convoys.filter(c=>c&&typeof c==='object'&&typeof c.id==='number'&&typeof c.progress==='number'&&typeof c.duration==='number'&&['out','back'].includes(c.phase));
+state.nextConvoyId=Math.max(state.nextConvoyId||1,...state.convoys.map(c=>c.id+1),1);
+function save(){try{localStorage.setItem(storageKey,JSON.stringify(state))}catch{}}
+function clamp(n,a=0,b=100){return Math.min(b,Math.max(a,n))}
+const SAVE_FORMAT='colonia-xanten-save';
+function downloadSave(blob,filename){
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
+ toast('Spielstand erstellt. Bitte im Downloadordner prüfen.');
+}
+function exportSave(){
+ save();
+ const data={format:SAVE_FORMAT,version:1,exportedAt:new Date().toISOString(),save:structuredClone(state)};
+ const json=JSON.stringify(data,null,2);
+ const filename='colonia-xanten-spielstand-'+new Date().toISOString().slice(0,10)+'.json';
+ const blob=new Blob([json],{type:'application/json'});
+ const file=new File([blob],filename,{type:'application/json'});
+ if(navigator.canShare?.({files:[file]})&&navigator.share){
+  navigator.share({files:[file],title:'COLONIA XANTEN Spielstand'}).catch(err=>{
+   if(err?.name!=='AbortError')downloadSave(blob,filename);
+  });
+ }else downloadSave(blob,filename);
+}
+function validSave(data){
+ if(!data||typeof data!=='object'||Array.isArray(data)||data.format!==SAVE_FORMAT||data.version!==1)return false;
+ const s=data.save;
+ if(!s||typeof s!=='object'||Array.isArray(s)||!s.buildings||typeof s.buildings!=='object'||!Array.isArray(s.chronicle))return false;
+ if(!Object.keys(defs).every(id=>s.buildings[id]&&typeof s.buildings[id]==='object'))return false;
+ if(!['grain','wood','water','coins','morale','cityOrder','citySupply'].every(k=>Number.isFinite(s[k])&&s[k]>=0))return false;
+ if(!Array.isArray(s.convoys)||!Array.isArray(s.portQueue))return false;
+ return true;
+}
+async function importSave(file){
+ if(!file)return;
+ if(file.size>2*1024*1024){alert('Spielstand zu groß (maximal 2 MB).');return}
+ let data;
+ try{data=JSON.parse(await file.text())}catch{alert('Die ausgewählte Datei ist kein gültiges JSON.');return}
+ if(!validSave(data)){alert('Die Datei ist kein kompatibler COLONIA-XANTEN-Spielstand. Es wurde nichts verändert.');return}
+ if(!confirm('Aktuellen Spielstand durch die Sicherung vom '+(data.exportedAt||'unbekannten Datum')+' ersetzen?'))return;
+ save();
+ const old=localStorage.getItem(storageKey);
+ try{
+  if(old)localStorage.setItem('colonia-xanten-pre-import-backup',old);
+  localStorage.setItem(storageKey,JSON.stringify(data.save));
+ }catch{alert('Import fehlgeschlagen: Speicher nicht verfügbar.');return}
+ location.reload();
+}
+
+function toast(message){const el=$('notification');el.textContent=message;el.classList.add('show');clearTimeout(toast.timeout);toast.timeout=setTimeout(()=>el.classList.remove('show'),2500)}
+let opened=null;
+let lastSheetOpen=0;
+function openSheet(html){lastSheetOpen=Date.now();$('sheetContent').innerHTML=html;$('sheet').classList.add('open');$('scrim').classList.add('open');$('sheet').setAttribute('aria-hidden','false');$('sheet').scrollTop=0}
+function closeSheet(){$('sheet').classList.remove('open');$('scrim').classList.remove('open');$('sheet').setAttribute('aria-hidden','true');opened=null;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab==='stadt'))}
+function meter(label,value){return `<div class="meter"><div class="meter-head"><span>${label}</span><b>${Math.round(value)} %</b></div><div class="meter-track"><div class="meter-fill" style="width:${clamp(value)}%"></div></div></div>`}
+// V1.0: Jede Aktion hat eine Abklingzeit in echten Minuten. Das verhindert Klick-Schleifen
+// (z. B. Markttag → Münzen → Markttag) und passt zum Echtzeitrhythmus der Stadt.
+const ACTION_COOLDOWN={fire:60,refuel:45,event:360,repair:120,market:240,guards:180,festival:720,distribute:240,craft:180,patrol:120,rations:240,aqueduct:240,water:180,host:120};
+function cooldownLeft(id,action){const until=state.cooldowns[id+':'+action]||0;return Math.max(0,until-Date.now())}
+function fmtWait(ms){const m=Math.ceil(ms/60000);if(m<60)return `${m} min`;const h=Math.floor(m/60),r=m%60;return r?`${h} h ${r} min`:`${h} h`}
+function actionButton(id,label,action){const left=cooldownLeft(id,action);return `<button type="button" data-action="${action}" data-label="${label}" class="${left?'cooling':''}" ${left?'disabled':''}>${label}${left?`<small>wieder in ${fmtWait(left)}</small>`:`<small>Pause danach: ${fmtWait((ACTION_COOLDOWN[action]||0)*60000)}</small>`}</button>`}
+function refreshCooldownButtons(){if(!opened||!defs[opened])return;$('sheetContent').querySelectorAll('[data-action]').forEach(b=>{const left=cooldownLeft(opened,b.dataset.action);const was=b.disabled;if(!left&&!was)return;b.disabled=!!left;b.classList.toggle('cooling',!!left);b.innerHTML=`${b.dataset.label}<small>${left?'wieder in '+fmtWait(left):'bereit'}</small>`})}
+function effectList(id){const fx=buildingEffects(id);return fx.length?`<span class="kicker">AUSWIRKUNGEN AUF DIE STADT</span><div class="effects">${fx.map(([t,txt])=>`<div class="effect ${t}">${t==='bad'?'⚠ ':t==='good'?'✓ ':'· '}${txt}</div>`).join('')}</div>`:''}
+function showBuilding(id){const d=defs[id];if(!d)return;opened=id;const s=state.buildings[id];openSheet(`<span class="kicker">${d.subtitle}</span><h2>${d.icon} ${d.name}</h2><p>${d.desc}</p><div class="divider"></div>${d.stats.map(([n,k])=>meter(n,s[k])).join('')}${effectList(id)}<div class="actions">${d.actions.map(([label,action])=>action==='trade'?`<button type="button" data-action="trade">${label}</button>`:actionButton(id,label,action)).join('')}</div>${['hafen','lager','werkstatt'].includes(id)?'<button class="wide-btn" id="buildingLogistics" type="button">⚒ Stadtlogistik öffnen</button>':''}<div class="divider"></div><div class="notice">HISTORISCHE EINORDNUNG<br>Einige Gebäudetypen sind historisch belegt; andere (z. B. die Herberge) sind plausible Beispiele. Sämtliche Positionen und Proportionen dieser Karte sind frei und schematisch gestaltet. Betriebswerte und Aktionen sind erfundene Spielelemente.</div>`);
+if(['hafen','lager','werkstatt'].includes(id))$('buildingLogistics').onclick=showLogistics;
+ $('sheetContent').querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>doAction(id,b.dataset.action)));}
+function afford(costs){for(const [key,amount] of Object.entries(costs)){if(state[key]<amount){toast('Nicht genug '+({wood:'Holz',coins:'Münzen',grain:'Getreide',water:'Wasser'}[key]||'Ressourcen'));return false}}for(const [key,amount] of Object.entries(costs))state[key]-=amount;return true}
+function spend(key,cost){if(state[key]<cost){toast('Nicht genug '+({wood:'Holz',coins:'Münzen',grain:'Getreide',water:'Wasser'}[key]||'Ressourcen'));return false}state[key]-=cost;return true}
+function doAction(id,action){const s=state.buildings[id];let message='';
+ if(action==='trade'){showTrade();return}
+ const left=cooldownLeft(id,action);if(left)return toast(`Noch ${fmtWait(left)} bis zur nächsten Anordnung.`);
+ switch(action){
+case 'fire':if(s.fuel<9)return toast('Nicht genug Brennstoff');if(!spend('wood',4))return;s.fuel=clamp(s.fuel-9);s.heat=clamp(s.heat+17);message='Die Feuerung wurde verstärkt.';break;
+case 'refuel':if(!spend('wood',9))return;s.fuel=clamp(s.fuel+28);message='Brennstoff wurde angeliefert.';break;
+case 'event':if(s.supplies<10)return toast('Nicht genug Vorräte');if(!afford({coins:14,grain:3}))return;s.supplies=clamp(s.supplies-10);s.visitors=clamp(s.visitors+18);s.condition=clamp(s.condition-3);state.morale=clamp(state.morale+4);message='Eine Veranstaltung wurde geplant.';break;
+case 'repair':if(!afford({wood:8,coins:6}))return;s.condition=clamp(s.condition+18);message='Die Instandsetzung ist abgeschlossen.';break;
+case 'market':{if(!spend('coins',5))return;const gain=4+Math.round(s.market/14);state.coins+=gain;s.market=clamp(s.market+10);state.citySupply=clamp(state.citySupply+2);message=`Der Markt belebt sich (+${gain} Münzen).`;break}
+case 'guards':if(!spend('coins',9))return;state.cityOrder=clamp(state.cityOrder+8);message='Zusätzliche Wachen wurden eingeteilt.';break;
+case 'festival':if(!spend('coins',12))return;state.morale=clamp(state.morale+9);s.visitors=clamp(s.visitors+16);state.cityOrder=clamp(state.cityOrder+3);message='Ein Festtag wird vorbereitet.';break;
+case 'distribute':if(!spend('grain',9))return;state.citySupply=clamp(state.citySupply+12);state.morale=clamp(state.morale+3);s.supplies=clamp(s.supplies-4);message='Getreiderationen wurden verteilt.';break;
+case 'craft':{if(s.condition<25)return toast('Die Werkstätten sind zu baufällig.');if(!spend('wood',7))return;const gain=8+Math.round(s.market/10);state.coins+=gain;s.market=clamp(s.market+8);message=`Werkstätten liefern Waren (+${gain} Münzen).`;break}
+case 'patrol':if(!spend('coins',6))return;state.cityOrder=clamp(state.cityOrder+6);s.order=clamp(s.order+22);message='Wachen sichern das Nordtor.';break;
+case 'rations':if(!spend('grain',7))return;state.morale=clamp(state.morale+8);message='Die Bewohner erhalten zusätzliche Rationen.';break;
+case 'aqueduct':if(!afford({wood:7,coins:4}))return;state.water=clamp(state.water+10);s.condition=clamp(s.condition+16);message='Wasserleitung instand gesetzt.';break;
+case 'water':if(state.water<12)return toast('Zu wenig Wasser');state.water-=8;state.morale=clamp(state.morale+6);message='Öffentliche Brunnen werden bevorzugt versorgt.';break;
+case 'host':{if(!spend('grain',3))return;const gain=3+Math.round(s.visitors/20);state.coins+=gain;s.visitors=clamp(s.visitors+9);message=`Reisende wurden bewirtet (+${gain} Münzen).`;break}
+default:return;
+ }
+ state.cooldowns[id+':'+action]=Date.now()+(ACTION_COOLDOWN[action]||60)*60000;
+ addLog(`${defs[id].name}: ${message}`);refreshAlerts(false);save();updateHeader();draw();showBuilding(id);toast(message)}
+function showList(){opened='list';openSheet(`<span class="kicker">ÜBERSICHT</span><h2>Gebäude der Colonia</h2><p>Wähle ein Gebäude, um sein Dashboard zu öffnen. Du kannst es auch direkt auf der Stadtkarte antippen.</p>${Object.entries(defs).map(([id,d])=>`<button class="list-button" data-building="${id}"><span class="mini-icon">${d.icon}</span><span><b>${d.name}</b><small>${d.subtitle}</small></span><span class="arrow">›</span></button>`).join('')}`);$('sheetContent').querySelectorAll('[data-building]').forEach(b=>b.addEventListener('click',()=>{showBuilding(b.dataset.building);centerBuilding(b.dataset.building)}))}
+function addLog(text){state.chronicle.push({time:tradeClock(),text});if(state.chronicle.length>80)state.chronicle=state.chronicle.slice(-80)}
+function showChronicle(){opened='chronik';openSheet(`<span class="kicker">ANNALES</span><h2>Chronik der Stadt</h2><p>Ereignisse im Zeitverlauf der Simulation.</p>${state.chronicle.slice().reverse().map(e=>`<div class="chronicle"><time>${e.time}</time><span>${e.text}</span></div>`).join('')}`)}
+// Version & Updates: nur sichtbar, wenn das Spiel über die App-Hülle (index.html) läuft.
+function renderUpdateBox(){
+ const box=$('updateBox');if(!box)return;const U=window.ColoniaUpdate;
+ const own=(document.querySelector('meta[name="cx-web-version"]')||{}).content||'?';
+ if(!U){box.innerHTML=`<div class="divider"></div><span class="kicker">VERSION</span><p class="fine">Spielversion ${own} · direkt geöffnet, ohne Update-Funktion.</p>`;return}
+ const s=U.status();
+ const when=s.lastCheck?new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(s.lastCheck)):'noch nie';
+ const state={checking:'Suche nach Updates …',downloading:'Spiel-Update wird geladen …',ok:'Auf dem neuesten Stand.',error:'Prüfung fehlgeschlagen: '+(s.error||''),idle:''}[s.state]||'';
+ const lines=[];
+ if(s.pending)lines.push(`<div class="effect good">✓ Spiel-Update ${s.pending.version} ist geladen und wird beim nächsten Start aktiv.</div>`);
+ if(s.apk)lines.push(`<div class="effect info">· Neue App-Version ${s.apk.version} verfügbar.</div>`);
+ if(s.needsApk)lines.push(`<div class="effect bad">⚠ Ein Spiel-Update braucht eine neuere App-Version.</div>`);
+ const okState=s.state==='ok'&&(s.pending||s.apk||s.needsApk)?'':state;
+ box.innerHTML=`<div class="divider"></div><span class="kicker">VERSION & UPDATES</span><div class="trade-summary"><div><b>${s.running||own}</b><small>Spiel${s.source==='update'?' (Update)':''}</small></div><div><b>${s.appVersion||'–'}</b><small>App</small></div><div><b>${when}</b><small>Letzte Prüfung</small></div></div>${lines.join('')}${okState?`<p class="fine">${okState}</p>`:''}<div class="actions"><button type="button" id="updCheck" ${s.state==='checking'||s.state==='downloading'?'disabled':''}>Nach Updates suchen</button>${s.pending?'<button type="button" id="updRestart">Jetzt neu starten</button>':s.apk?'<button type="button" id="updApk">App-Update laden</button>':''}</div><p class="fine">Spiel-Updates werden beim Öffnen automatisch geladen und mit einer Prüfsumme kontrolliert. Neue App-Versionen muss Android einmal bestätigen. Spielstände bleiben erhalten.</p>`;
+ $('updCheck').onclick=()=>U.check();if($('updRestart'))$('updRestart').onclick=()=>U.restart();if($('updApk'))$('updApk').onclick=()=>U.openApk();
+}
+if(window.ColoniaUpdate)window.ColoniaUpdate.onChange(()=>{if(opened==='info')renderUpdateBox()});
+function showInfo(){
+ opened='info';const solar=getSolarTimes(new Date());
+ const d=solar?`${solar.rise} bis ${solar.set}`:'derzeit nicht verfügbar';
+ openSheet(`<span class="kicker">DE REBVS ANTIQVIS</span><h2>Über COLONIA XANTEN</h2><p>Spielerische Rekonstruktion der römischen Colonia Ulpia Traiana um 150 n. Chr.</p><span class="tag">ca. 73 Hektar</span><span class="tag">Römische Stadt</span><div class="notice"><b>Historisch:</b> Architektur, Flusslauf und Gebäudestandorte sind stilisierte Interpretationen; Betriebszahlen, Handel und Verbrauch sind Spielmodelle.</div><div class="divider"></div><span class="kicker">ECHTZEITBETRIEB · XANTEN</span><p>Geräteuhr in der Zeitzone Europe/Berlin. Die astronomisch berechneten Sonnenzeiten berücksichtigen den Kalendertag und die geografische Lage Xantens (51,66° N, 6,45° O).</p><div class="trade-summary"><div><b>${solar?.rise||'–'}</b><small>Sonnenaufgang</small></div><div><b>${solar?.set||'–'}</b><small>Sonnenuntergang</small></div><div><b>1:1</b><small>Echtzeitfaktor</small></div></div><p>Tageslicht heute: ${d}. Getreide wird zu drei täglichen Mahlzeiten ausgegeben; Wasser und Brennstoff werden stündlich verbraucht. Handwerker arbeiten tagsüber; Transporte benötigen reale Stunden.</p><div class="notice"><b>Spielwirtschaft:</b> Getreide −4 Einheiten pro Tag in drei Mahlzeiten (07, 12, 19 Uhr), Holz −2 pro echten 24 Stunden. Wasser fließt abhängig vom Zustand der Leitungen und der Jahreszeit zu; im Sommer wird mehr verbraucht. Gebäude altern täglich (im Winter schneller), und ihr Zustand wirkt auf Stimmung, Ordnung, Vorräte und Einnahmen. Jede Anordnung hat danach eine Pause in echter Zeit. Keine historischen Mengeneinheiten. Bei geschlossener App werden höchstens 48 Stunden nachgeholt. Pause stoppt den Spielbetrieb, nicht Uhr oder Sonnenstand.</div><p class="fine">Offline und ohne Server nutzbar. Die App arbeitet mit deiner Geräteuhr; eine falsch eingestellte Systemzeit beeinflusst den Simulationsverlauf. Bereits gestartete alte Handelsrouten übernehmen ihre Stundenwerte ab der Umstellung.</p><div id="updateBox"></div><div class="divider"></div><span class="kicker">TOUCH-DIAGNOSE</span><p class="fine">Für die Fehleranalyse: Zeigt Gebäude-Trefferflächen gelb an und meldet Berührungen.</p><button type="button" id="touchDiag" class="wide-btn">Touch-Test ein-/ausschalten</button><div class="divider"></div><span class="kicker">SPIELSTAND SICHERN</span><p class="fine">Fortschritt als JSON-Datei sichern. Beim Import wird der vorhandene Spielstand ersetzt.</p><div class="actions"><button type="button" id="exportSave" class="wide-btn">Spielstand exportieren</button><button type="button" id="importSaveBtn" class="wide-btn">Spielstand importieren</button></div><input id="importSaveFile" type="file" accept=".json,application/json" hidden><div class="divider"></div><button class="wide-btn" id="resetData" type="button">Simulation zurücksetzen</button>`);
+ renderUpdateBox();
+ $('touchDiag').onclick=()=>enableTouchDiagnostics(!touchDiagnostics);
+ $('exportSave').onclick=exportSave;
+ $('importSaveBtn').onclick=()=>$('importSaveFile').click();
+ $('importSaveFile').onchange=e=>{importSave(e.target.files?.[0]);e.target.value=''};
+ $('resetData').addEventListener('click',()=>{if(!confirm('Alle gespeicherten Simulationswerte zurücksetzen?'))return;for(const k of [storageKey,...legacyKeys])localStorage.removeItem(k);location.reload()});
+}
+$('closeSheet').onclick=closeSheet;$('scrim').onclick=()=>{if(Date.now()-lastSheetOpen>650)closeSheet()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));if(b.dataset.tab==='stadt'){closeSheet()}else if(b.dataset.tab==='gebaeude')showList();else if(b.dataset.tab==='handel')showTrade();else if(b.dataset.tab==='chronik')showChronicle();else showInfo()});
+// The display is set to Xanten's actual time zone, not to the visitor's system time zone.
+const clockFormatter=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+const dateFormatter=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',day:'2-digit',month:'2-digit',year:'numeric'});
+function actualTime(){const now=new Date();const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',hourCycle:'h23'}).formatToParts(now);const o={};for(const p of parts)if(p.type!=='literal')o[p.type]=+p.value;return{hour:o.hour,minute:o.minute,month:o.month,day:o.day,year:o.year,clock:clockFormatter.format(now),date:dateFormatter.format(now)}}
+function seasonName(m){return m===12||m<=2?'WINTER':m<=5?'FRÜHLING':m<=8?'SOMMER':'HERBST'}
+// NOAA-style sunrise/sunset approximation. Returns UTC event Date objects.
+const XANTEN_LAT=51.66,XANTEN_LON=6.45,DEG=Math.PI/180;
+const solarCache=new Map();
+function solarEvent(y,m,d,sunrise){
+ const N=Math.floor((Date.UTC(y,m-1,d)-Date.UTC(y,0,0))/86400000);
+ const lngHour=XANTEN_LON/15;
+ const t=N+((sunrise?6:18)-lngHour)/24;
+ const M=.9856*t-3.289;
+ const L=((M+1.916*Math.sin(M*DEG)+.020*Math.sin(2*M*DEG)+282.634)%360+360)%360;
+ const RA0=((Math.atan(.91764*Math.tan(L*DEG))/DEG)%360+360)%360;
+ const RA=(RA0+Math.floor(L/90)*90-Math.floor(RA0/90)*90)/15;
+ const sinDec=.39782*Math.sin(L*DEG),cosDec=Math.cos(Math.asin(sinDec));
+ const cosH=(Math.cos(90.833*DEG)-sinDec*Math.sin(XANTEN_LAT*DEG))/(cosDec*Math.cos(XANTEN_LAT*DEG));
+ if(cosH>1||cosH< -1)return null;
+ const H=(sunrise?360-Math.acos(cosH)/DEG:Math.acos(cosH)/DEG)/15;
+ const T=H+RA-.06571*t-6.622;
+ const UT=T-lngHour;
+ return new Date(Date.UTC(y,m-1,d)+(((UT%24)+24)%24)*3600000);
+}
+function getSolarTimes(now){const t=localParts(now),key=`${t.year}-${t.month}-${t.day}`;if(solarCache.has(key))return solarCache.get(key);
+ const rise=solarEvent(t.year,t.month,t.day,true),set=solarEvent(t.year,t.month,t.day,false);
+ const fmt=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+ const result=rise&&set?{rise:fmt.format(rise),set:fmt.format(set),riseDate:rise,setDate:set}:null;
+ solarCache.set(key,result);if(solarCache.size>5)solarCache.delete(solarCache.keys().next().value);return result;
+}
+function localParts(now){const fmt=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',hourCycle:'h23'});const v={};for(const part of fmt.formatToParts(now))if(part.type!=='literal')v[part.type]=+part.value;return v}
+function lightingHour(){return liveClock.hour}
+function daylightLevel(){const now=new Date(),sun=getSolarTimes(now);if(!sun)return 1;
+ const t=now.getTime(),rise=sun.riseDate.getTime(),set=sun.setDate.getTime(),twilight=30*60000;
+ return t<rise-twilight||t>set+twilight?0:t<rise+twilight||t>set-twilight?.5:1;
+}
+function updateHeader(){const t=actualTime();const season=seasonName(t.month);liveClock.hour=t.hour;liveClock.season=season;liveClock.daylight=daylightLevel();$('clockValue').textContent=t.clock;$('clockDay').textContent=t.date;$('sunIcon').textContent=liveClock.daylight===0?'☾':liveClock.daylight===.5?'◐':'☀';$('seasonTag').textContent=({WINTER:'❄',FRÜHLING:'✿',SOMMER:'☀',HERBST:'🍂'}[season])+' '+season+' · ECHTZEIT';$('citySupply').textContent=Math.round(state.citySupply)+'%';$('cityOrder').textContent=Math.round(state.cityOrder)+'%';$('grainValue').textContent=Math.round(state.grain);$('woodValue').textContent=Math.round(state.wood);$('waterValue').textContent=Math.round(state.water);$('coinsValue').textContent=Math.round(state.coins);$('moraleValue').textContent=Math.round(state.morale)+'%';$('toggleTime').textContent=state.paused?'▶':'Ⅱ';$('toggleTime').setAttribute('aria-label',state.paused?'Simulation fortsetzen':'Simulation anhalten')}
+
+// Live-Uhrwerte einmal pro Sekunde zwischenspeichern, statt sie in jedem Animationsframe neu zu berechnen.
+const liveClock={hour:actualTime().hour,season:seasonName(actualTime().month),daylight:daylightLevel()};
+function roman(n){n=Math.floor(n);if(n<1||n>3999)return String(n);let s='';for(const [v,ch] of [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']])while(n>=v){n-=v;s+=ch}return s}
+$('toggleTime').onclick=()=>{state.paused=!state.paused;updateHeader();save();toast(state.paused?'Zeit angehalten':'Zeit läuft weiter')};
+const events=[
+ {text:'Händler melden neue Nachfrage nach Getreide. Gezielte Lieferungen starten im Handelspanel.',effect:()=>{state.tradeReputation=clamp(state.tradeReputation+1)}},
+ {text:'Handwerker fertigen Waren für Händler am Rhein.',effect:()=>{state.coins+=9;state.wood=clamp(state.wood-3)}},
+ {text:'Ein beschädigtes Wasserrohr senkt die Versorgung.',effect:()=>{state.water=clamp(state.water-12)}},
+ {text:'Ein Markt zieht Kaufleute aus der Umgebung an.',effect:()=>{state.coins+=7;state.morale=clamp(state.morale+4)}},
+ {text:'Die Stadtwache meldet nächtliche Unruhe.',effect:()=>{state.cityOrder=clamp(state.cityOrder-6)}},
+ {text:'Ein trockener Tag erhöht den Wasserbedarf.',effect:()=>{state.water=clamp(state.water-7)}}
+];
+function actualDayKey(t){return `${t.year}-${String(t.month).padStart(2,'0')}-${String(t.day).padStart(2,'0')}`}
+// V1.0: Gebäudewerte wirken stündlich auf die Stadt. Alle Raten sind Spielmodell-Annahmen.
+const WATER_USE={WINTER:.28,FRÜHLING:.30,SOMMER:.37,HERBST:.30};
+const WATER_FLOW={WINTER:1.05,FRÜHLING:.95,SOMMER:.75,HERBST:.95};
+function waterInflow(season){return .34*(state.buildings.wasser.condition/100)*(WATER_FLOW[season]||.95)}
+function forumIncome(){return Math.max(0,Math.round(state.buildings.forum.market/24*(.5+state.morale/200)))}
+function workshopIncome(){return 3+Math.round(state.buildings.werkstatt.market/30)}
+function innIncome(){return Math.round(state.buildings.herberge.visitors/28)}
+function perDay(v){return (Math.round(v*24*10)/10).toLocaleString('de-DE')}
+function buildingEffects(id){
+ const b=state.buildings,s=b[id],out=[],season=liveClock.season;
+ switch(id){
+  case 'thermen':
+   if(s.heat<35)out.push(['bad',`Kalte Becken: Die Stimmung sinkt (≈ −${perDay(.13)} %/Tag).`]);
+   else if(s.heat>=60)out.push(['good','Warme Bäder heben tagsüber die Stimmung.']);
+   if(s.fuel<15)out.push(['bad','Brennstoff fast aufgebraucht: Die Thermen kühlen aus.']);
+   else out.push(['info',`Brennstoffverbrauch ≈ ${perDay(season==='WINTER'?.55:.35)} %/Tag${season==='WINTER'?' (Winter)':''}.`]);
+   break;
+  case 'wasser':{const inn=waterInflow(season),use=WATER_USE[season]||.3;
+   out.push([inn>=use?'good':'info',`Zufluss ≈ ${perDay(inn)}/Tag, Verbrauch ≈ ${perDay(use)}/Tag (${season.toLowerCase()}).`]);
+   if(s.condition<50)out.push(['bad','Undichte Leitungen verringern den Zufluss.']);break}
+  case 'lager':
+   if(s.condition<40)out.push(['bad',`Feuchte Speicher: Getreide verdirbt (≈ −${perDay(.12)}/Tag).`]);
+   else out.push(['info','Trockene Speicher: kein zusätzlicher Verderb.']);break;
+  case 'tor':
+   if(s.order<45||s.condition<35)out.push(['bad',`Schwache Torwache: Die Ordnung sinkt (≈ −${perDay(.15)} %/Tag).`]);
+   else out.push(['good','Das Tor ist gut bewacht.']);
+   out.push(['info',`Die Wachsamkeit lässt nach (≈ −${perDay(.12)} %/Tag).`]);break;
+  case 'insula':
+   if(s.condition<40)out.push(['bad',`Verfallende Häuser: Die Stimmung sinkt (≈ −${perDay(.12)} %/Tag).`]);break;
+  case 'hafen':
+   if(s.condition<40)out.push(['bad','Marode Kaianlagen: Entladen dauert doppelt so lange, Transporte sind riskanter.']);
+   else out.push(['info','Kaianlagen arbeiten normal.']);break;
+  case 'werkstatt':
+   if(s.condition<25)out.push(['bad','Die Werkstätten stehen still (Zustand unter 25 %).']);
+   else out.push(['info',`Tägliche Produktion um 15 Uhr: −3 Holz, +${workshopIncome()} Münzen.`]);break;
+  case 'forum':
+   out.push(['info',`Marktabgaben um 10 Uhr: +${forumIncome()} Münzen (abhängig von Marktaktivität und Stimmung).`]);
+   if(s.condition<35)out.push(['bad','Baufälliges Forum: Die Ordnung leidet.']);break;
+  case 'amphitheater':case 'tempel':{const avg=(b.amphitheater.visitors+b.tempel.visitors)/2;
+   if(avg>=65)out.push(['good','Volle Ränge und Feste heben die Stimmung.']);
+   else if(avg<30)out.push(['bad','Kaum öffentliches Leben: Die Stimmung sinkt langsam.']);
+   if(s.condition<35)out.push(['bad','Baufällig: Weniger Besucher kommen.']);break}
+  case 'herberge':
+   out.push(['info',`Übernachtungsgelder um 20 Uhr: +${innIncome()} Münzen.`]);
+   if(s.condition<35)out.push(['bad','Baufällige Herberge: Reisende bleiben aus.']);break;
+ }
+ if(s.condition<35&&!out.some(([t,txt])=>t==='bad'&&/baufällig|marode|verfall|feucht|undicht|still/i.test(txt)))out.push(['bad','Der Bauzustand ist kritisch.']);
+ return out;
+}
+let problemIds=new Set();
+function refreshAlerts(log=true){
+ const next=new Set();
+ for(const id of Object.keys(defs)){const bad=buildingEffects(id).find(([t])=>t==='bad');if(bad)next.add(id);
+  if(log){if(bad&&!state.alerts[id])addLog(`⚠ ${defs[id].name}: ${bad[1]}`);else if(!bad&&state.alerts[id])addLog(`${defs[id].name}: wieder in Ordnung.`)}
+  state.alerts[id]=!!bad}
+ problemIds=next;
+}
+function applyRealHour(epoch){
+ const t=localParts(new Date(epoch));const key=actualDayKey(t);const season=seasonName(t.month),winter=season==='WINTER';
+ const b=state.buildings;
+ state.hour=t.hour; // vor den Chronik-Einträgen setzen, damit die Uhrzeit stimmt
+ if(state.lastCalendarDay&&state.lastCalendarDay!==key){
+  state.day++;
+  state.citySupply=clamp(state.citySupply+(state.grain>25?1:-8));
+  state.cityOrder=clamp(state.cityOrder+(state.morale>35?-.5:-5));
+  state.morale=clamp(state.morale+(state.grain>20&&state.water>20?-.7:-7));
+  // Witterung und Nutzung: Gebäude altern, im Winter schneller.
+  for(const s of Object.values(b)){s.condition=clamp(s.condition-(winter?1.6:1.1));s.visitors=clamp(s.visitors-1.5);s.market=clamp(s.market-1.5)}
+  if(state.day%2===0){const e=events[(Math.floor(state.day/2)-1)%events.length];e.effect();cityLog(e.text)}
+  cityLog('Neuer Kalendertag: drei Mahlzeiten und Stadtbetrieb werden fortgeführt.');
+ }
+ state.lastCalendarDay=key;
+ state.hour=t.hour;
+ const daytime=t.hour>=6&&t.hour<=20;
+ // Mahlzeiten um 7, 12 und 19 Uhr (abstrakte Vorratseinheiten).
+ if([7,12,19].includes(t.hour)){
+  const ration=4/3;
+  const available=Math.min(ration,state.grain);
+  state.grain=clamp(state.grain-available);
+  state.totalMeals=(state.totalMeals||0)+1;
+  if(available<ration)state.morale=clamp(state.morale-2);
+  if(t.hour===19)cityLog('Abendmahlzeit ausgegeben; die Haushalte gehen zur Ruhe.');
+ }
+ // Wasser: Zufluss hängt vom Zustand der Leitungen und der Jahreszeit ab.
+ const inflow=waterInflow(season);
+ state.water=clamp(state.water+inflow-(WATER_USE[season]||.3));
+ b.wasser.heat=clamp(inflow/.34*100);
+ state.wood=clamp(state.wood-2/24);
+ // Thermen: Brennstoff wird verbraucht, die Wärme folgt dem Brennstoff (im Winter kälter).
+ const th=b.thermen;th.fuel=clamp(th.fuel-(winter?.55:.35));
+ const target=(th.fuel>5?72:15)-(winter?14:0)+(season==='SOMMER'?6:0);
+ th.heat=clamp(th.heat+(target-th.heat)*.05);
+ if(th.heat<35)state.morale=clamp(state.morale-.13);else if(th.heat>=60&&daytime)state.morale=clamp(state.morale+.04);
+ // Speicher
+ if(b.lager.condition<40)state.grain=clamp(state.grain-.12);
+ // Tor und Forum: Sicherheit
+ b.tor.order=clamp(b.tor.order-.12);
+ if(b.tor.order<45||b.tor.condition<35)state.cityOrder=clamp(state.cityOrder-.15);
+ if(b.forum.condition<35)state.cityOrder=clamp(state.cityOrder-.08);
+ // Wohnviertel
+ if(b.insula.condition<40)state.morale=clamp(state.morale-.12);
+ // Öffentliches Leben: Amphitheater und Tempel
+ const pub=(b.amphitheater.visitors+b.tempel.visitors)/2;
+ if(pub>=65&&daytime)state.morale=clamp(state.morale+.03);else if(pub<30)state.morale=clamp(state.morale-.06);
+ for(const id of ['amphitheater','tempel','herberge'])if(b[id].condition<35)b[id].visitors=clamp(b[id].visitors-.15);
+ // Stimmung wirkt auf die Ordnung zurück
+ if(state.morale<40)state.cityOrder=clamp(state.cityOrder-.1);
+ if(state.grain<12||state.water<12)state.morale=clamp(state.morale-.25);
+ // Anzeige-Spiegel: Ordnung und Lebensqualität folgen den Stadtwerten
+ b.forum.order=state.cityOrder;b.tempel.order=state.cityOrder;b.insula.order=state.morale;b.wasser.order=clamp(state.morale+5);
+ advanceConvoys();processCityLogistics();
+ if(state.hour===10){const g=forumIncome();if(g>0){state.coins+=g;b.forum.market=clamp(b.forum.market-.5)}}
+ if(state.hour===20&&b.herberge.condition>=35){state.coins+=innIncome()}
+ if(state.hour===18&&state.water<25)state.morale=clamp(state.morale-2);
+ refreshAlerts(true);
+}
+// A single hour of gameplay is now exactly one real hour. Offline processing
+// uses timestamps and a 48h cap; the cap also prevents catch-up spirals.
+function tick(){
+ const now=Date.now();
+ if(!Number.isFinite(state.lastRealTick)||state.lastRealTick<=0)state.lastRealTick=now;
+ if(now<state.lastRealTick){state.lastRealTick=now;save();return}
+ if(state.paused){state.lastRealTick=now;updateHeader();save();return}
+ const hours=Math.min(48,Math.floor((now-state.lastRealTick)/3600000));
+ if(hours>0){const capped=now-state.lastRealTick>48*3600000;
+  const origin=capped?now-hours*3600000:state.lastRealTick;
+  if(capped)state.offlineHours=(state.offlineHours||0)+hours;
+  for(let i=1;i<=hours;i++)applyRealHour(origin+i*3600000);
+  state.lastRealTick=capped?now:state.lastRealTick+hours*3600000;
+  if(hours>1)cityLog(`Offline-Fortsetzung: ${hours} echte Stunden nachgerechnet${capped?' (auf 48 Stunden begrenzt)':''}.`);
+  save();if(opened==='handel')showTrade();if(opened==='logistik')showLogistics();if(opened==='chronik')showChronicle();
+ }
+ updateHeader();draw();
+}
+// Stylized painted overhead city diagram, intentionally NOT an archaeological map.
+const WORLD_W=1570,WORLD_H=930;
+const RIVER_OFFSET=380;
+let vw=400,vh=600,base=1,zoom=1,panX=52,panY=0,dpr=1;
+let visualSeconds=0,lastFrame=0,lastPaint=0,rafId=0;
+const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false;
+let motionEnabled=state.animation!==false&&!reduceMotion;
+function motionLabel(){const b=$('motionToggle');b.textContent=motionEnabled?'◉':'◌';b.setAttribute('aria-label',motionEnabled?'Animation ausschalten':'Animation einschalten');b.title=motionEnabled?'Animation ausschalten':'Animation einschalten'}
+motionLabel();
+$('motionToggle').onclick=()=>{motionEnabled=!motionEnabled;state.animation=motionEnabled;save();motionLabel();draw();toast(motionEnabled?'Stadtanimation eingeschaltet':'Stadtanimation ausgeschaltet')};
+const random=(x,y)=>{let n=Math.sin(x*127.1+y*311.7)*43758.5453;return n-Math.floor(n)};
+function fillRect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+function line(points,color,width=1){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
+function polygon(points,color,stroke=null){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.closePath();ctx.fillStyle=color;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1.6;ctx.stroke()}}
+function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
+function roof(x,y,w,h,height=12,col=0){const tones=['#b77550','#af6846','#c0845d','#9a5e40','#ce956c','#b97854'];const c=tones[col%tones.length];polygon([[x,y],[x+w,y],[x+w,y+h],[x,y+h]],'#e0cbaa','#71694f');polygon([[x,y+h],[x+w,y+h],[x+w+height*.38,y+h+height],[x+height*.38,y+h+height]],'#85745a');polygon([[x+w,y],[x+w+height*.38,y+height],[x+w+height*.38,y+h+height],[x+w,y+h]],'#9c8a67');polygon([[x,y],[x+w,y],[x+w+height*.38,y+height],[x+height*.38,y+height]],c,'#875e40');line([[x+5,y+3],[x+w-5,y+3]],'#d9a178',1.2);}
+function tree(x,y,size=8){ctx.fillStyle='#314d33';ctx.beginPath();ctx.ellipse(x+3,y+4,size,size*.58,-.3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#4b7048';ctx.beginPath();ctx.ellipse(x,y,size*.83,size*.65,-.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#789066';ctx.beginPath();ctx.arc(x-size*.17,y-size*.17,size*.3,0,7);ctx.fill()}
+function label(text,x,y,color='#f5e9ce'){ctx.font='bold 12px system-ui';ctx.textAlign='center';const width=ctx.measureText(text).width+16;rounded(x-width/2,y-16,width,23,6,'#273426ed');ctx.fillStyle=color;ctx.fillText(text,x,y);}
+function ellipse(x,y,rx,ry,color){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill()}
+function drawArena(d){const {x,y,w,h}=d;ellipse(x+w/2+7,y+h/2+10,w*.55,h*.57,'#72634d');ellipse(x+w/2+7,y+h/2+10,w*.49,h*.49,'#e0c79a');ellipse(x+w/2+7,y+h/2+10,w*.39,h*.39,'#8d7558');ellipse(x+w/2+7,y+h/2+10,w*.30,h*.28,'#c1a77a');for(let a=0;a<Math.PI*2;a+=.26){const xx=x+w/2+7+Math.cos(a)*w*.46,yy=y+h/2+10+Math.sin(a)*h*.43;fillRect(xx-3,yy-3,6,6,'#efe0bc')}for(let i=0;i<5;i++){polygon([[x+12+i*19,y+10],[x+22+i*19,y+4],[x+31+i*19,y+10]],i%2?'#b96744':'#d6bd89')}line([[x+18,y+h+4],[x+w-14,y+h+4]],'#8b7c62',3)}
+function drawThermes(d){const{x,y,w,h}=d;fillRect(x-8,y-8,w+16,h+18,'#ccb892');fillRect(x+8,y+10,w-16,h-18,'#daccab');roof(x+2,y,39,30,14,1);roof(x+50,y,46,28,11,2);roof(x+4,y+50,37,28,10,3);fillRect(x+48,y+42,45,36,'#bda882');fillRect(x+54,y+47,32,22,'#689ea0');fillRect(x+16,y+38,20,16,'#6ea4a8');for(let i=0;i<4;i++)fillRect(x+10+i*20,y+78,10,5,'#f2e7cf');line([[x+48,y+44],[x+92,y+44],[x+92,y+80],[x+48,y+80],[x+48,y+44]],'#efe2c4',2)}
+function drawForum(d){const{x,y,w,h}=d;fillRect(x-8,y-8,w+16,h+16,'#d4bf96');fillRect(x+17,y+18,w-34,h-34,'#cab591');roof(x+2,y,w-4,14,10,4);roof(x+2,y+h-20,w-4,15,10,1);roof(x,y+18,14,h-34,8,3);roof(x+w-14,y+18,14,h-34,8,2);for(let i=0;i<6;i++){fillRect(x+19+i*13,y+36,5,22,'#efe4ce');fillRect(x+18+i*13,y+34,7,4,'#baa783')}fillRect(x+41,y+31,24,17,'#b79365');line([[x+35,y+58],[x+w-35,y+58]],'#bfa886',2);for(let i=0;i<4;i++)ellipse(x+28+i*17,y+67,2.6,2.6,'#e9dfc8')}
+function drawHarbor(d){const{x,y,w,h}=d;fillRect(x+12,y,w-14,h,'#b9a57f');roof(x+15,y+8,44,34,10,2);roof(x+66,y+9,41,33,10,0);roof(x+16,y+57,46,32,10,4);roof(x+68,y+57,39,28,10,1);for(let j=0;j<3;j++){fillRect(x-16,y+10+j*31,31,8,'#795e43');polygon([[x-37,y+9+j*31],[x-17,y+6+j*31],[x-13,y+16+j*31],[x-34,y+19+j*31]],'#654b36');line([[x-27,y+6+j*31],[x-27,y-10+j*31]],'#e8d9ad',2);polygon([[x-27,y-12+j*31],[x-12,y+4+j*31],[x-27,y+3+j*31]],'#ede2c5')}}
+function drawTemple(d){const{x,y,w,h}=d;fillRect(x+6,y+14,w-12,h-24,'#bba987');for(let s=0;s<4;s++)fillRect(x+10+s*5,y+74+s*2,w-20-s*10,3,'#ad9876');roof(x+10,y+13,w-19,26,11,4);fillRect(x+15,y+43,w-30,28,'#e2d5b5');for(let i=0;i<6;i++){fillRect(x+18+i*11,y+41,5,29,'#f0e4cc');fillRect(x+16+i*11,y+39,9,4,'#bca982')}fillRect(x+9,y+72,w-18,6,'#ad9876');polygon([[x+47,y+19],[x+55,y+30],[x+39,y+30]],'#cc8955')}
+
+function drawDistrictDetail(){
+ // Kleine Höfe, Laubengänge, Straßenpflaster und Brunnen, ohne die anklickbaren Bauwerke zu verdecken.
+ const occupied=Object.values(defs);
+ for(let row=0;row<6;row++)for(let col=0;col<7;col++){
+   const x=279+col*115,y=176+row*116;
+   if(occupied.some(d=>x<d.x+d.w+10&&x+94>d.x-10&&y<d.y+d.h+10&&y+91>d.y-10))continue;
+   // Tonziegel-Reihen, kleine Innenhöfe, Schatten und Türen
+   for(let k=0;k<3;k++){
+     const bx=x+9+k*27,by=y+40+(k%2)*11;
+     fillRect(bx,by,14,12,'#d8c9ab');
+     line([[bx+2,by+3],[bx+12,by+3]],'#b48a62',1);
+     fillRect(bx+5,by+11,3,4,'#735a42');
+   }
+   if(random(row,col)>.44){fillRect(x+43,y+37,22,24,'#baad88');ellipse(x+53,y+48,7,6,'#7fa5a0');ellipse(x+53,y+48,3,2,'#c3dbcc')}
+ }
+ // Unterbrochene Pflasterlinien, Querstraßen sowie einzelne Handelsstände
+ for(let x=254;x<=1045;x+=115)for(let y=184;y<795;y+=35){line([[x+4,y],[x+14,y]],'#b7a486',.9)}
+ for(let y=151;y<815;y+=116)for(let x=284;x<1030;x+=42)line([[x,y+3],[x+19,y+3]],'#b7a486',.85);
+ for(let i=0;i<16;i++){const x=276+(i%8)*89,y=459+Math.floor(i/8)*11;fillRect(x,y,12,7,'#b58f63');polygon([[x-2,y],[x+14,y],[x+11,y-7],[x+1,y-7]],i%2?'#bd704c':'#ddba78');}
+ // Landwirtschaftsflächen vor der Mauer, weitere Straßen am Flussufer
+ for(let i=0;i<8;i++){const y=36+i*113;fillRect(1120,y,112,55,i%2?'#a5a476':'#b3ac77');for(let k=0;k<7;k++)line([[1126+k*14,y+5],[1132+k*14,y+50]],'#8d9467',1)}
+}
+function drawHarborDetail(){
+ // Kräne, Fässer, gestapelte Kisten, Seile und einfache feste Stege.
+ for(let k=0;k<5;k++){const y=186+k*129;
+   fillRect(119,y+18,14,11,'#84694b');
+   for(let b=0;b<3;b++){fillRect(144+b*12,y+15,10,9,b%2?'#a18b66':'#8c7450');line([[144+b*12,y+19],[154+b*12,y+19]],'#634b35',1)}
+   line([[175,y+24],[175,y-19],[195,y-19]],'#5b4b33',3);
+   line([[195,y-19],[195,y+9]],'#bda57d',1.8);ellipse(195,y+9,3,3,'#685037');
+ }
+ line([[154,125],[154,825]],'#baa486',5);
+ for(let k=0;k<48;k++){const x=165+(k%3)*9,y=135+Math.floor(k/3)*43;ellipse(x,y,1.8,1.3,'#756a51')}
+}
+function drawGoodsCaravan(){
+ // Warenkarren folgen der Verbindung vom Kai zum Speicher, solange Ladung wartet.
+ const num=state.portQueue.length; if(!num||!motionEnabled)return;
+ const start={x:190,y:541},end={x:457,y:217};
+ for(let i=0;i<Math.min(3,num);i++){
+   const t=(visualSeconds*.036+i*.36)%1;
+   // Drei Wegabschnitte über regelmäßige Straßen: Hafen -> Querstraße -> Speicher.
+   const points=[[start.x,start.y],[262,541],[262,270],[457,270],[end.x,end.y]];
+   let a=t*(points.length-1),n=Math.min(points.length-2,Math.floor(a)),f=a-n;
+   const x=points[n][0]*(1-f)+points[n+1][0]*f,y=points[n][1]*(1-f)+points[n+1][1]*f;
+   ctx.save();ctx.translate(x,y);fillRect(-8,-5,16,11,'#916742');fillRect(-5,-9,11,5,'#c7a46f');ellipse(-6,7,3.4,3.4,'#534b37');ellipse(6,7,3.4,3.4,'#534b37');ellipse(0,-12,2.5,2.5,'#d9bd8c');ctx.restore();
+ }
+}
+function drawWorkingPopulation(){
+ if(!motionEnabled)return;
+ const working=lightingHour()>=6&&lightingHour()<=19;
+ const commutes=[
+  [[950,735],[950,508],[940,508],[940,380]],
+  [[950,735],[950,508],[840,508],[840,628]],
+  [[950,735],[950,508],[720,508],[720,383]],
+  [[820,260],[820,276],[820,392],[607,392],[607,470]],
+  [[250,540],[262,540],[262,508],[457,508],[457,260]],
+  [[628,176],[628,392],[607,392],[607,470]],
+  [[457,260],[457,276],[377,276],[377,392],[350,392]],
+  [[470,748],[470,740],[607,740],[607,470]]
+ ];
+ const workColors=['#6c4b3e','#6e7f66','#8b6c4f','#807493'];
+ for(let i=0;i<20;i++){const route=commutes[i%commutes.length];const phase=(visualSeconds/(28+(i%6)*4)+i*.129)%1;const p=pointOnPath(route,working?phase:1-phase);drawCitizenFigure(p.x,p.y,workColors[i%workColors.length],p.angle,1.02)}
+}
+function drawPortSignal(){
+ if(!state.portQueue.length)return;
+ ctx.save();const pulse=.65+.25*Math.sin(visualSeconds*3);ctx.globalAlpha=pulse;ellipse(186,471,16,16,'#e5b85b');ctx.fillStyle='#283329';ctx.textAlign='center';ctx.font='bold 17px system-ui';ctx.fillText('!',186,477);ctx.restore();
+}
+// V1.0 · Erweiterte Landschaft rund um die Stadt. Alle Koordinaten in lokalen Kartenkoordinaten
+// (nach translate(RIVER_OFFSET)). Die Umgebung ist bewusst schematisch: Felder, Gutshöfe,
+// Gräberstraßen vor den Toren (römischer Brauch), Wälder und Auen am gegenüberliegenden Ufer.
+const EXT={x0:-1480,x1:2290,y0:-820,y1:1750};
+const NEAR_BANK=[[110,EXT.y0],[96,-560],[124,-300],[102,-120],[100,0],[130,120],[109,224],[141,330],[105,471],[133,592],[105,760],[136,930],[114,1120],[140,1330],[116,1550],[128,EXT.y1]];
+function farBankX(y){return -352+22*Math.sin(y*.006)+12*Math.sin(y*.017+1)}
+const FAR_BANK=[];for(let y=EXT.y0;y<EXT.y1;y+=50)FAR_BANK.push([farBankX(y),y]);FAR_BANK.push([farBankX(EXT.y1),EXT.y1]);
+const FIELD_PALETTE={
+ SOMMER:['#c9b46a','#b7ad6c','#a5a476','#d3bf78','#9fa56f'],
+ HERBST:['#a68a5c','#b39867','#8f8a5d','#9c7d55','#a9a070'],
+ WINTER:['#9b8f74','#8f8a72','#a39a80','#8a856c','#978f78'],
+ FRÜHLING:['#93a46a','#a5a476','#8aa064','#b3ac77','#9cae72']};
+let groundLayer=null,landFeatures=null;
+function buildGround(){
+ const S=.32,W=EXT.x1-EXT.x0,H=EXT.y1-EXT.y0,c=document.createElement('canvas');
+ c.width=Math.ceil(W*S);c.height=Math.ceil(H*S);const g=c.getContext('2d');g.scale(S,S);g.translate(-EXT.x0,-EXT.y0);
+ g.fillStyle='#8b9777';g.fillRect(EXT.x0,EXT.y0,W,H);
+ for(let i=0;i<80;i++){const x=EXT.x0+random(i,601)*W,y=EXT.y0+random(i,602)*H,r=140+random(i,603)*280;
+  const col=['rgba(163,166,120,','rgba(108,134,94,','rgba(150,150,104,','rgba(122,143,98,'][i%4];
+  const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,col+'.5)');gr.addColorStop(1,col+'0)');g.fillStyle=gr;g.fillRect(x-r,y-r,2*r,2*r)}
+ // Feuchte Aue am gegenüberliegenden Ufer, etwas dunkler und grüner
+ const aue=g.createLinearGradient(-900,0,-340,0);aue.addColorStop(0,'rgba(84,112,80,0)');aue.addColorStop(1,'rgba(84,112,80,.35)');g.fillStyle=aue;g.fillRect(EXT.x0,EXT.y0,EXT.x0*-1-340,H);
+ for(let i=0;i<2800;i++){const x=EXT.x0+random(i,77)*W,y=EXT.y0+random(i,91)*H;g.fillStyle=i%3?'#849472':'#a1a785';g.beginPath();g.ellipse(x,y,2+random(i,9)*11,1+random(i,30)*7,0,0,Math.PI*2);g.fill()}
+ groundLayer=c;
+}
+function buildLandFeatures(){
+ const L={fields:[],trees:[],villas:[],graves:[],reeds:[],roads:[],glades:[]};
+ L.roads=[
+  {w:18,pts:[[626,112],[626,-140],[598,-420],[634,-700],[618,EXT.y0]]},
+  {w:18,pts:[[626,852],[626,1080],[656,1360],[618,EXT.y1]]},
+  {w:18,pts:[[1123,471],[1420,471],[1720,505],[2000,470],[EXT.x1,450]]},
+  {w:10,pts:[[178,EXT.y0],[170,-400],[188,-60],[176,124]]},
+  {w:10,pts:[[176,825],[188,1150],[170,1450],[182,EXT.y1]]}];
+ const segDist=(px,py,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy||1;let t=((px-a[0])*dx+(py-a[1])*dy)/l;t=Math.max(0,Math.min(1,t));return Math.hypot(px-a[0]-t*dx,py-a[1]-t*dy)};
+ const roadDist=(x,y)=>{let m=1e9;for(const r of L.roads)for(let i=1;i<r.pts.length;i++)m=Math.min(m,segDist(x,y,r.pts[i-1],r.pts[i]));return m};
+ const CORE={x0:150,y0:-10,x1:1250,y1:940}; // ursprüngliche Karte bleibt unverändert
+ const overlaps=(x,y,w,h,r,m=0)=>x<r.x1+m&&x+w>r.x0-m&&y<r.y1+m&&y+h>r.y0-m;
+ const villaSpots=[[1420,170],[1820,690],[1480,1120],[300,-520],[960,-420],[330,1190],[960,1340],[2000,-240],[1900,1360],[1600,-560],[1380,-180]];
+ for(const [x,y] of villaSpots){if(overlaps(x,y,120,95,CORE,20)||roadDist(x+55,y+45)<85)continue;L.villas.push({x,y,c:(x+y)%6})}
+ const nearVilla=(x,y,w,h)=>L.villas.some(v=>overlaps(x,y,w,h,{x0:v.x-30,y0:v.y-30,x1:v.x+150,y1:v.y+125}));
+ // Diesseits: Felder, Wiesen, Gehölze
+ const cw=135,ch=95;
+ for(let x=150;x<EXT.x1;x+=cw)for(let y=EXT.y0;y<EXT.y1;y+=ch){
+  if(overlaps(x,y,cw,ch,CORE)||nearVilla(x,y,cw,ch))continue;
+  const cx=x+cw/2,cy=y+ch/2;if(roadDist(cx,cy)<72)continue;
+  const r=random(x*.013+3.1,y*.017+1.7),j=random(y*.02,x*.03);
+  if(r<.5){const f={x:x+5+j*8,y:y+5,w:cw-12-j*10,h:ch-11,kind:Math.floor(random(x,y+7)*5),dir:random(x+3,y)>.5};L.fields.push(f);
+   if(random(x+11,y+5)>.68)for(let k=0;k<5;k++)L.trees.push({x:f.x+8+k*(f.w/5),y:f.y+f.h+4,s:6+random(k,x)*3})}
+  else if(r<.66)L.fields.push({x:x+6,y:y+6,w:cw-12,h:ch-12,meadow:true});
+  else if(r<.86){const n=7+Math.floor(random(x+1,y+2)*7);for(let k=0;k<n;k++)L.trees.push({x:x+12+random(k,x+y)*(cw-24),y:y+12+random(y,k+x)*(ch-24),s:8+random(k+x,y)*7})}
+  else if(r<.93)L.trees.push({x:cx+(j-.5)*40,y:cy,s:10+j*5});
+ }
+ // Jenseits des Rheins: Auwald, Wiesen, Röhricht
+ for(let x=EXT.x0;x<-360;x+=cw)for(let y=EXT.y0;y<EXT.y1;y+=ch){
+  const r=random(x*.011+7.3,y*.019+2.2);
+  const lim=(yy)=>farBankX(yy)-34;
+  if(r<.56){if(x+cw/2+60<lim(y+ch/2))L.glades.push({x:x+cw/2,y:y+ch/2,rx:62,ry:44,a:random(x,y)-.5,wood:true});const n=10+Math.floor(random(x,y)*6);for(let k=0;k<n;k++){const tx=x+10+random(k,x-y)*(cw-20),ty=y+10+random(y+k,x)*(ch-20);if(tx<lim(ty))L.trees.push({x:tx,y:ty,s:8+random(k,y)*7})}}
+  else if(r<.8){const gx=x+cw/2+(random(x,y+1)-.5)*40,gy=y+ch/2;if(gx+70<lim(gy))L.glades.push({x:gx,y:gy,rx:45+random(x+2,y)*30,ry:26+random(x,y+3)*18,a:(random(y,x)-.5)*.8})}
+  else{const tx=x+cw/2,ty=y+ch/2;if(tx<lim(ty))L.trees.push({x:tx,y:ty,s:11})}
+ }
+ for(let y=EXT.y0;y<EXT.y1;y+=16){const fx=farBankX(y);L.reeds.push({x:fx-4-random(y,3)*16,y});if(random(y,9)>.72)L.trees.push({x:fx-28-random(y,4)*18,y:y+4,s:7+random(y,5)*3})}
+ // Röhricht am diesseitigen Ufer außerhalb des Hafens
+ for(let y=EXT.y0;y<EXT.y1;y+=18){if(y>80&&y<860)continue;const nb=NEAR_BANK.reduce((best,p)=>Math.abs(p[1]-y)<Math.abs(best[1]-y)?p:best,NEAR_BANK[0]);L.reeds.push({x:nb[0]+4+random(y,13)*10,y})}
+ // Gräberstraßen vor Nord- und Südtor
+ for(let k=0;k<15;k++)for(const side of [-1,1]){const y=76-k*24,rr=random(k,side+5);L.graves.push({x:626+side*(26+rr*34),y,t:rr<.3?0:rr<.88?1:2})}
+ for(let k=0;k<13;k++)for(const side of [-1,1]){const y=890+k*24,rr=random(k+40,side+9);L.graves.push({x:626+side*(26+rr*34)+(k*1.2),y,t:rr<.3?0:rr<.88?1:2})}
+ L.trees.sort((a,b)=>a.y-b.y);
+ return L;
+}
+function viewBoundsLocal(){const a=toWorld(0,0),b=toWorld(vw,vh);return{x0:a.x-RIVER_OFFSET,y0:a.y,x1:b.x-RIVER_OFFSET,y1:b.y}}
+function inView(x,y,m,vb){return x>vb.x0-m&&x<vb.x1+m&&y>vb.y0-m&&y<vb.y1+m}
+function drawRoad(r){line(r.pts,'#97876a',r.w+5);line(r.pts,'#d1bf98',r.w);if(r.w>12)line(r.pts,'#bba985',1)}
+function drawField(f,pal){
+ if(f.meadow){ctx.fillStyle='#97a67a';ctx.fillRect(f.x,f.y,f.w,f.h);for(let k=0;k<5;k++)ellipse(f.x+10+random(f.x,k)*(f.w-20),f.y+8+random(k,f.y)*(f.h-16),7,3,'#a9b588');return}
+ ctx.fillStyle=pal[f.kind];ctx.fillRect(f.x,f.y,f.w,f.h);ctx.strokeStyle='rgba(92,86,58,.32)';ctx.lineWidth=1;ctx.beginPath();
+ if(f.dir){for(let k=f.x+6;k<f.x+f.w;k+=11){ctx.moveTo(k,f.y+3);ctx.lineTo(k,f.y+f.h-3)}}else{for(let k=f.y+6;k<f.y+f.h;k+=9){ctx.moveTo(f.x+3,k);ctx.lineTo(f.x+f.w-3,k)}}
+ ctx.stroke();ctx.strokeStyle='rgba(88,96,64,.5)';ctx.lineWidth=1.5;ctx.strokeRect(f.x,f.y,f.w,f.h)}
+function drawVilla(v){const{x,y}=v;fillRect(x-8,y-8,118,92,'#b4aa86');ctx.strokeStyle='#857b5f';ctx.lineWidth=3;ctx.strokeRect(x-8,y-8,118,92);fillRect(x+4,y+6,94,68,'#cbbf9b');roof(x+8,y+8,58,24,10,v.c);roof(x+70,y+10,24,40,9,(v.c+2)%6);roof(x+10,y+48,34,18,7,(v.c+4)%6);ellipse(x+60,y+60,6,4,'#7fa5a0');tree(x+106,y+2,9);tree(x-16,y+72,8)}
+function drawGrave(g){if(g.t===0){ellipse(g.x+2,g.y+3,9,6,'#5f6b4e');ellipse(g.x,g.y,9,6,'#7d8a62');ellipse(g.x-2,g.y-2,4,2.5,'#95a077')}else if(g.t===1){fillRect(g.x-2,g.y-9,5,11,'#ddd3bc');fillRect(g.x-3,g.y-10,7,2,'#a49a84');fillRect(g.x-3,g.y+2,7,2,'#7a705c')}else{fillRect(g.x-9,g.y-9,18,18,'#d6cbb1');roof(g.x-9,g.y-9,18,12,6,4)}}
+function drawRiverBase(){
+ polygon([...FAR_BANK,...NEAR_BANK.slice().reverse()],'#5c9094');
+ polygon([...FAR_BANK.map(([x,y])=>[x+48+10*Math.sin(y*.011),y]),...FAR_BANK.map(([x,y])=>[x+180+14*Math.sin(y*.008+2),y]).reverse()],'#477b83');
+ polygon([...NEAR_BANK,...NEAR_BANK.map(([x,y])=>[x-30,y]).reverse()],'#87a79a');
+ polygon([...FAR_BANK,...FAR_BANK.map(([x,y])=>[x+20,y]).reverse()],'#7aa094');
+ line(FAR_BANK,'#6d7d58',3);line(NEAR_BANK,'#7d7b5c',2);
+ ellipse(68,-380,9,58,'#c8bb90');ellipse(56,1280,8,66,'#c8bb90');ellipse(70,-380,5,44,'#d8cca4');ellipse(58,1280,4,50,'#d8cca4');
+ const span=EXT.y1-EXT.y0;for(let i=0;i<44;i++){const y=EXT.y0+((i*77+28)%span),x=-95+(i%3)*36;line([[x,y],[x+18,y+3]],'#79b1b4',2)}
+}
+function drawLandscape(){
+ if(!landFeatures)landFeatures=buildLandFeatures();const L=landFeatures,vb=viewBoundsLocal(),pal=FIELD_PALETTE[liveClock.season]||FIELD_PALETTE.SOMMER;
+ for(const f of L.fields)if(inView(f.x+f.w/2,f.y+f.h/2,110,vb))drawField(f,pal);
+ for(const g of L.glades)if(inView(g.x,g.y,90,vb)){ctx.fillStyle=g.wood?'rgba(70,98,66,.45)':'#9aa97c';ctx.beginPath();ctx.ellipse(g.x,g.y,g.rx,g.ry,g.a,0,Math.PI*2);ctx.fill();if(!g.wood){ctx.fillStyle='#a9b689';ctx.beginPath();ctx.ellipse(g.x-6,g.y-4,g.rx*.55,g.ry*.5,g.a,0,Math.PI*2);ctx.fill()}}
+ for(const r of L.roads)drawRoad(r);
+ for(const g of L.graves)if(inView(g.x,g.y,20,vb))drawGrave(g);
+ for(const v of L.villas)if(inView(v.x+50,v.y+40,140,vb))drawVilla(v);
+ for(const r of L.reeds)if(inView(r.x,r.y,15,vb)){line([[r.x,r.y],[r.x-2,r.y-9]],'#6f8a57',1.3);line([[r.x+3,r.y],[r.x+4,r.y-7]],'#87a067',1.1)}
+ for(const t of L.trees)if(inView(t.x,t.y,20,vb))tree(t.x,t.y,t.s);
+ ctx.save();ctx.textAlign='center';ctx.fillStyle='rgba(244,234,206,.78)';ctx.shadowColor='rgba(30,40,28,.6)';ctx.shadowBlur=6;
+ ctx.font='italic 30px Georgia';ctx.fillText('GERMANIA MAGNA',-820,420);ctx.font='italic 15px Georgia';ctx.fillText('jenseits des Rheins · außerhalb der Provinz',-820,446);
+ ctx.font='italic 17px Georgia';ctx.fillText('Gräberstraße',700,-250);ctx.fillText('Gräberstraße',700,1200);ctx.fillText('Gutshof · villa rustica',1480,-205);
+ ctx.restore();
+}
+function drawStaticMap(){
+if(!groundLayer)buildGround();
+ctx.drawImage(groundLayer,EXT.x0,EXT.y0,EXT.x1-EXT.x0,EXT.y1-EXT.y0);
+drawRiverBase();
+drawLandscape();
+for(let j=0;j<5;j++){const y=178+j*130;fillRect(97,y,125,12,'#786044');fillRect(96,y+12,9,12,'#544333');for(let k=0;k<4;k++)fillRect(114+k*25,y+2,7,8,'#967a55')}
+for(let i=0;i<7;i++){let y=124+i*102;fillRect(112,y+18,35,12,'#80684a');fillRect(131,y+12,11,22,'#a68a65');ellipse(146,y+38,4,4,'#66503a')}
+fillRect(230,124,842,701,'#a7a27c');fillRect(243,137,816,674,'#b1a985');
+ctx.strokeStyle='#88836b';ctx.lineWidth=21;ctx.strokeRect(230,124,842,701);ctx.strokeStyle='#ded0ae';ctx.lineWidth=5;ctx.strokeRect(230,124,842,701);
+const towers=[[230,124],[651,124],[1072,124],[230,474],[1072,474],[230,825],[651,825],[1072,825]];for(const [tx,ty] of towers){fillRect(tx-14,ty-14,28,28,'#7f775d');fillRect(tx-10,ty-10,20,20,'#b8ab8b')}
+fillRect(515,383,172,129,'#d9c7a5');fillRect(698,368,52,44,'#dbcaa8');fillRect(332,368,64,44,'#d8c5a1');fillRect(820,616,54,38,'#d8c5a3');
+for(let x=254;x<1060;x+=115){fillRect(x,139,18,673,'#d6c3a0');line([[x+9,139],[x+9,811]],'#bba985',1)}
+for(let y=151;y<815;y+=116){fillRect(244,y,815,18,'#d6c3a0');line([[244,y+9],[1059,y+9]],'#bba985',1)}
+fillRect(1058,460,65,22,'#d6c3a0');fillRect(615,112,22,45,'#d6c3a0');fillRect(615,800,22,52,'#d6c3a0');
+const specials=Object.values(defs);for(let row=0;row<6;row++){for(let col=0;col<7;col++){let x=279+col*115,y=176+row*116;let intersect=specials.some(d=>x<d.x+d.w+10 && x+94>d.x-10 && y<d.y+d.h+10 && y+91>d.y-10);if(intersect)continue;fillRect(x-5,y-5,98,91,'#c2b38f');let rr=random(col,row);if(rr>.81){for(let i=0;i<4;i++)tree(x+15+i*18,y+15+random(i,col)*55,8);roof(x+12,y+54,53,20,8,(col+row)%6);continue}roof(x+4,y+4,40,29,10,(col+row)%6);roof(x+52,y+5,34,30,8,(col+row+2)%6);roof(x+6,y+48,37,29,10,(col+row+4)%6);if(rr>.33)roof(x+53,y+48,32,29,8,(col+row+5)%6);else tree(x+69,y+65,12);}}
+drawDistrictDetail();drawHarborDetail();
+for(let i=0;i<95;i++){const x=168+random(i,3)*965,y=30+random(i,8)*869;if(x>214&&x<1090&&y>104&&y<849)continue;tree(x,y,6+random(i,43)*9)}
+for(const [id,d] of Object.entries(defs)){if(id==='amphitheater')drawArena(d);if(id==='thermen')drawThermes(d);if(id==='forum')drawForum(d);if(id==='hafen')drawHarbor(d);if(id==='tempel')drawTemple(d);if(id==='lager')drawWarehouse(d);if(id==='werkstatt')drawWorkshop(d);if(id==='tor')drawGate(d);if(id==='insula')drawHousing(d);if(id==='wasser')drawWater(d);if(id==='herberge')drawHousing(d)}
+for(const [id,d] of Object.entries(defs)){ctx.save();ctx.setLineDash([5,4]);ctx.lineWidth=2;ctx.strokeStyle='rgba(255,237,180,.9)';ctx.strokeRect(d.x-6,d.y-7,d.w+12,d.h+14);ctx.restore();let short={thermen:'THERMEN',amphitheater:'ARENA',forum:'FORUM',hafen:'HAFEN',tempel:'TEMPEL',lager:'SPEICHER',werkstatt:'HANDWERK',tor:'NORDTOR',insula:'WOHNEN',wasser:'WASSER',herberge:'HERBERGE'}[id];label(short,d.x+d.w/2,d.y+d.h+36)}
+drawSeasonOverlay();
+ctx.font='italic 23px Georgia';ctx.textAlign='center';ctx.fillStyle='#e0eee5';for(const ly of [389,-420,1290]){ctx.save();ctx.translate(-110,ly);ctx.rotate(-Math.PI/2);ctx.fillText('RHENVS · RHEIN',0,0);ctx.restore()}
+}
+function drawDynamicMap(){
+ const vb=viewBoundsLocal(),span=EXT.y1-EXT.y0+110;
+ for(let i=0;i<110;i++){const y=EXT.y0-55+((i*span/110+(i%7)*13+(motionEnabled?visualSeconds*7:0))%span),x=-322+(i%7)*58+Math.sin(i*2.3)*16;if(y<vb.y0-20||y>vb.y1+20)continue;line([[x,y],[x+22,y-4],[x+47,y+2]],'#a8cfca',i%4===0?2.4:1.2)}
+ const bspan=EXT.y1-EXT.y0+240;
+ for(let j=0;j<8;j++){const speed=[8,-6,4.7,-7,3.2,5.6,-4.4,6.3][j],phase=(visualSeconds*speed+j*331+state.day*17);const y=EXT.y0-120+((phase%bspan)+bspan)%bspan;if(y<vb.y0-80||y>vb.y1+80)continue;const x=-286+(j%3)*100+Math.sin(y*.008+j)*22;drawWake(x,y,speed>0);drawBoat(x,y,speed>0)}
+ drawCitizens();drawWorkingPopulation();drawGoodsCaravan();drawPortSignal();drawSmoke();drawWarnings();drawNightOverlay();
+}
+function drawWarnings(){
+ if(!problemIds.size)return;const pulse=.72+.28*Math.sin(visualSeconds*3.2);
+ for(const id of problemIds){const d=defs[id];const x=d.x+d.w+6,y=d.y-8;ctx.save();ctx.globalAlpha=pulse;ellipse(x,y,12,12,'#c8664a');ctx.globalAlpha=1;ctx.strokeStyle='#ffe6c4';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,12,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#fff3df';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',x,y+1);ctx.restore()}
+}
+function drawWake(x,y,south){ctx.save();ctx.globalAlpha=.42;for(let k=0;k<3;k++){const yy=y+(south?-1:1)*(34+k*10);line([[x-23-k*2,yy],[x,yy+4],[x+23+k*2,yy]],'#e3f3e7',1.6)}ctx.restore()}
+function pointOnPath(points,t){let lengths=[],total=0;for(let i=0;i<points.length-1;i++){const dx=points[i+1][0]-points[i][0],dy=points[i+1][1]-points[i][1],len=Math.hypot(dx,dy);lengths.push(len);total+=len}let dist=((t%1)+1)%1*total;for(let i=0;i<lengths.length;i++){if(dist<=lengths[i]||i===lengths.length-1){const a=points[i],b=points[i+1],f=Math.min(1,lengths[i]?dist/lengths[i]:0);return{x:a[0]+(b[0]-a[0])*f,y:a[1]+(b[1]-a[1])*f,angle:Math.atan2(b[1]-a[1],b[0]-a[0])}}dist-=lengths[i]}const last=points[points.length-1];return{x:last[0],y:last[1],angle:0}}
+function drawCitizenFigure(x,y,color,angle=0,scale=1){ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.scale(scale,scale);ellipse(0,5,4.8,2.2,'#493f3275');line([[0,-1],[0,4]],color,2.2);line([[0,1],[-2.5,3.5]],color,1.4);line([[0,1],[2.5,3.5]],color,1.4);line([[0,4],[-1.8,7.8]],'#5d4a39',1.3);line([[0,4],[1.8,7.8]],'#5d4a39',1.3);ellipse(0,-3.2,2.2,2.5,'#dfbc93');ctx.restore()}
+function drawCitizens(){
+ const routes=[[[262,160],[262,805]],[[377,160],[377,805]],[[607,160],[607,805]],[[837,160],[837,805]],[[952,160],[952,805]],[[244,160],[1058,160]],[[244,276],[1058,276]],[[244,392],[1058,392]],[[244,508],[1058,508]],[[244,624],[1058,624]],[[244,740],[1058,740]],[[244,508],[540,508],[540,470],[685,470]],[[244,508],[244,540],[250,540]],[[685,470],[720,470],[720,383]],[[540,470],[840,470],[840,628]],[[540,470],[950,470],[950,735]],[[540,470],[628,470],[628,176]],[[377,276],[457,276],[457,260]]];
+ const colors=['#9c5841','#e2d3b4','#58705c','#7b6554','#a29b80','#856f9d'];
+ for(let i=0;i<36;i++){const route=routes[i%routes.length];const speed=20+(i%5)*4;const p=pointOnPath(route,(visualSeconds/speed+i*.117)%1);drawCitizenFigure(p.x,p.y,colors[i%colors.length],p.angle,0.95+(i%3)*0.06)}
+ // Pack animals / small carts on the east-west market road
+ for(let i=0;i<3;i++){const p=pointOnPath([[280,508],[980,508]],(visualSeconds/32+i*.31)%1);ctx.save();ctx.translate(p.x,p.y);fillRect(-8,-4,16,10,'#96744d');fillRect(-2,-11,8,7,'#b18b60');ellipse(-5,7,4,4,'#514a3c');ellipse(7,7,4,4,'#514a3c');ellipse(-11,-2,4,3,'#7a6446');ctx.restore()}
+}
+function drawSmoke(){
+ const centers=[[948,302],[947,307],[707,310],[885,310],[842,198],[503,221]];
+ for(let i=0;i<centers.length;i++){
+  const [x,y]=centers[i];const power=lightingHour()>=6&&lightingHour()<=20?1:.38;
+  for(let k=0;k<5;k++){
+   const t=((visualSeconds*9+i*14+k*13)%85)/85;
+   const sx=x+Math.sin(visualSeconds*.4+k+i)*5+t*19;
+   const sy=y-t*64;
+   ctx.globalAlpha=power*(1-t)*.22;
+   ellipse(sx,sy,5+t*11,4+t*8,'#d6d0bd');
+  }
+ }ctx.globalAlpha=1;
+}
+function drawNightOverlay(){
+ const level=liveClock.daylight;const alpha=level===0?.50:level===.5?.25:0;
+ if(!alpha)return;
+ ctx.save();ctx.fillStyle=`rgba(17,28,48,${alpha})`;ctx.fillRect(EXT.x0,EXT.y0,EXT.x1-EXT.x0,EXT.y1-EXT.y0);
+ const points=[[602,447],[647,459],[684,325],[358,331],[179,545],[621,148],[796,221],[814,567],[929,682],[814,195]];
+ if(landFeatures)for(const v of landFeatures.villas)points.push([v.x+40,v.y+30]);
+ if(level===0){for(const [x,y] of points){let gr=ctx.createRadialGradient(x,y,1,x,y,27);gr.addColorStop(0,'rgba(253,199,91,.62)');gr.addColorStop(.3,'rgba(245,166,71,.26)');gr.addColorStop(1,'rgba(245,166,71,0)');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(x,y,27,0,Math.PI*2);ctx.fill();ellipse(x,y,2.3,2.3,'#ffe09a')}}
+ ctx.restore();
+}
+function drawSeasonOverlay(){
+ const season=liveClock.season,W=EXT.x1-EXT.x0,H=EXT.y1-EXT.y0,vb=viewBoundsLocal();ctx.save();
+ const inWall=(x,y)=>x>226&&x<1076&&y>120&&y<829,inRiver=(x,y)=>x>farBankX(y)&&x<140;
+ if(season==='HERBST'){ctx.fillStyle='rgba(169,100,44,.085)';ctx.fillRect(EXT.x0,EXT.y0,W,H);for(let i=0;i<900;i++){const x=EXT.x0+random(i,410)*W,y=EXT.y0+random(i,411)*H;if(inWall(x,y)||inRiver(x,y)||!inView(x,y,5,vb))continue;ellipse(x,y,2.7,1.4,i%3?'#b78247':'#d2ae68')}}
+ if(season==='WINTER'){ctx.fillStyle='rgba(194,207,208,.13)';ctx.fillRect(EXT.x0,EXT.y0,W,H);for(let i=0;i<1500;i++){const x=EXT.x0+random(i,512)*W,y=EXT.y0+random(i,517)*H;if(inWall(x,y)||inRiver(x,y)||!inView(x,y,5,vb))continue;ellipse(x,y,1.2+random(i,6)*1.2,1.1,'#d7ded5')}}
+ if(season==='FRÜHLING'){ctx.fillStyle='rgba(104,152,74,.06)';ctx.fillRect(EXT.x0,EXT.y0,W,H)}
+ if(season==='SOMMER'){ctx.fillStyle='rgba(212,179,80,.035)';ctx.fillRect(EXT.x0,EXT.y0,W,H)}
+ ctx.restore();
+}
+function drawBoat(x,y,toSouth){ctx.save();ctx.translate(x,y);if(!toSouth)ctx.scale(1,-1);polygon([[-16,-38],[0,-48],[17,-36],[21,34],[0,49],[-21,34]],'#6b4d36','#c5a57b');polygon([[-12,-24],[12,-24],[15,25],[-13,25]],'#a17a53');line([[0,25],[0,-48]],'#ecdcc1',3);polygon([[1,-37],[32,-7],[2,-7]],'#ebe0bb');ellipse(0,34,8,3,'#3b5651');ctx.restore()}
+function drawWarehouse(d){const{x,y,w,h}=d;fillRect(x-3,y-3,w+6,h+6,'#c6b596');roof(x+2,y+6,38,50,12,3);roof(x+48,y+6,38,50,12,1);for(let i=0;i<4;i++)fillRect(x+8+i*19,y+63,10,5,'#795e42')}
+function drawWorkshop(d){const{x,y,w,h}=d;roof(x,y+6,42,32,10,2);roof(x+48,y+4,45,32,11,3);roof(x+6,y+48,70,24,9,0);ellipse(x+70,y+43,7,5,'#686e60')}
+function drawGate(d){const{x,y,w,h}=d;fillRect(x+11,y+18,62,18,'#8f7e62');roof(x+2,y+6,25,30,12,4);roof(x+53,y+6,25,30,12,4);fillRect(x+34,y+18,15,28,'#4b4d3d');fillRect(x+8,y+38,17,9,'#7d6e55');fillRect(x+61,y+38,17,9,'#7d6e55');line([[x+41,y+18],[x+41,y+44]],'#a89a7a',1);line([[x+11,y+46],[x+73,y+46]],'#7b6449',2)}
+function drawHousing(d){const{x,y,w,h}=d;fillRect(x-3,y-3,w+6,h+6,'#c5b694');roof(x+4,y+4,39,28,10,0);roof(x+49,y+3,40,31,9,3);roof(x+10,y+43,68,26,9,2);fillRect(x+38,y+34,12,10,'#bbad89');ellipse(x+44,y+39,3,3,'#8fb6b0')}
+function drawWater(d){const{x,y,w,h}=d;fillRect(x-3,y-3,w+6,h+6,'#d5c49e');roof(x+2,y+4,40,28,11,4);fillRect(x+48,y+14,38,38,'#cbb99b');ellipse(x+66,y+32,14,14,'#6c9fa2');ellipse(x+66,y+32,8,8,'#8fb8b8');roof(x+6,y+51,42,17,7,2)}
+function transform(){ctx.translate(vw/2+panX,vh/2+panY);ctx.scale(base*zoom,base*zoom);ctx.translate(-WORLD_W/2,-WORLD_H/2)}
+// Ansicht begrenzen: Man kann bis an den Rand der Landschaft schieben, aber nie darüber hinaus.
+function clampPan(){const sc=base*zoom;if(!sc)return;const hw=vw/2/sc,hh=vh/2/sc,X0=EXT.x0+RIVER_OFFSET,X1=EXT.x1+RIVER_OFFSET;let cx=WORLD_W/2-panX/sc,cy=WORLD_H/2-panY/sc;cx=X1-X0<=2*hw?(X0+X1)/2:Math.min(X1-hw,Math.max(X0+hw,cx));cy=EXT.y1-EXT.y0<=2*hh?(EXT.y0+EXT.y1)/2:Math.min(EXT.y1-hh,Math.max(EXT.y0+hh,cy));panX=-(cx-WORLD_W/2)*sc;panY=-(cy-WORLD_H/2)*sc}
+// Zwei Ebenen: Landschaft und Stadt werden nur bei Verschieben, Zoomen oder Jahreszeitwechsel neu gezeichnet;
+// pro Animationsframe kommen nur Wasser, Schiffe, Bürger, Rauch, Warnungen und Nacht dazu.
+const staticCanvas=document.createElement('canvas');let staticKey='';
+function draw(){if(regionMode){drawRegion();return}if(!vw||!vh||document.hidden)return;
+ clampPan();
+ const key=[canvas.width,canvas.height,zoom.toFixed(4),panX.toFixed(2),panY.toFixed(2),liveClock.season].join('|');
+ if(key!==staticKey){staticKey=key;if(staticCanvas.width!==canvas.width||staticCanvas.height!==canvas.height){staticCanvas.width=canvas.width;staticCanvas.height=canvas.height}
+  const g=staticCanvas.getContext('2d');ctx=g;try{g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle='#859375';g.fillRect(0,0,vw,vh);g.save();transform();g.translate(RIVER_OFFSET,0);drawStaticMap();g.restore()}finally{ctx=mainCtx}}
+ ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(staticCanvas,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.save();transform();ctx.translate(RIVER_OFFSET,0);drawDynamicMap();ctx.restore();updateBuildingTargets()}
+function resize(){const r=canvas.getBoundingClientRect();vw=r.width;vh=r.height;dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.round(vw*dpr));canvas.height=Math.max(1,Math.round(vh*dpr));base=Math.min(vw/950,vh/850);resizeRegion();draw()}
+function toWorld(cx,cy){return {x:(cx-vw/2-panX)/(base*zoom)+WORLD_W/2,y:(cy-vh/2-panY)/(base*zoom)+WORLD_H/2}}
+function setZoom(next,x=vw/2,y=vh/2){const before=toWorld(x,y);zoom=clamp(next,.65,3.1);const after=toWorld(x,y);panX+=(after.x-before.x)*base*zoom;panY+=(after.y-before.y)*base*zoom;draw()}
+function centerBuilding(id){if(regionMode)setRegionMode(false);const d=defs[id];zoom=Math.max(zoom,1.15);panX=-(d.x+RIVER_OFFSET+d.w/2-WORLD_W/2)*base*zoom;panY=-(d.y+d.h/2-WORLD_H/2)*base*zoom;draw()}
+$('zoomIn').onclick=()=>regionMode?regionZoomBy(1.28):setZoom(zoom*1.28);$('zoomOut').onclick=()=>regionMode?regionZoomBy(1/1.28):setZoom(zoom/1.28);$('resetView').onclick=()=>{if(regionMode){rZoom=1;rPanX=0;rPanY=0;drawRegion()}else{zoom=1;panX=52;panY=0;draw()}};
+// A separate DOM hit target sits directly over each drawn building.
+// Buttons give Android WebView a real touch target; the same pointer gesture
+// handler handles both canvas and buttons, so dragging and pinch zoom still work.
+const buildingTargets=document.createElement('div');
+buildingTargets.id='buildingTargets';
+buildingTargets.className='cx-building-targets';
+canvas.insertAdjacentElement('afterend',buildingTargets);
+const targetEls=new Map();
+for(const [id,d] of Object.entries(defs)){
+ const el=document.createElement('button');el.type='button';el.className='cx-building-target';
+ el.dataset.building=id;el.setAttribute('aria-label',d.name+' öffnen');
+ buildingTargets.appendChild(el);targetEls.set(id,el);
+}
+let targetLayoutKey='';
+function updateBuildingTargets(){
+ const key=[vw,vh,panX.toFixed(2),panY.toFixed(2),zoom.toFixed(4),regionMode].join('|');
+ if(key===targetLayoutKey)return;
+ targetLayoutKey=key;
+ const scale=base*zoom;
+ for(const [id,d] of Object.entries(defs)){
+  const el=targetEls.get(id);
+  const x=vw/2+panX+(d.x+RIVER_OFFSET-WORLD_W/2)*scale;
+  const y=vh/2+panY+(d.y-WORLD_H/2)*scale;
+  const w=d.w*scale,h=d.h*scale;
+  const bw=Math.max(46,w+10),bh=Math.max(46,h+10);
+  el.style.left=(x+w/2-bw/2)+'px';
+  el.style.top=(y+h/2-bh/2)+'px';
+  el.style.width=bw+'px';el.style.height=bh+'px';
+  el.hidden=regionMode;
+ }
+ buildingTargets.style.display=regionMode?'none':'block';
+}
+const pointers=new Map();
+let gesture=null,lastPointerTap=0,lastBuildingOpen=0;
+let touchDiagnostics=localStorage.getItem('cx-touch-diag')==='1';
+if(touchDiagnostics)for(const el of targetEls.values()){el.style.background='rgba(249,199,75,.25)';el.style.outline='1px solid #f1ca79'}
+function touchDebug(message){if(touchDiagnostics)toast('TOUCH: '+message)}
+function enableTouchDiagnostics(on){
+ touchDiagnostics=!!on;localStorage.setItem('cx-touch-diag',on?'1':'0');
+ for(const el of targetEls.values()){el.style.background=on?'rgba(249,199,75,.25)':'';el.style.outline=on?'1px solid #f1ca79':''}
+ toast(on?'Touch-Test aktiv: gelbe Flächen antippen':'Touch-Test deaktiviert');
+}
+function openMapBuilding(id,origin){
+ if(!id){touchDebug(origin+': kein Gebäude erkannt');return false}
+ if(Date.now()-lastBuildingOpen<500)return true;
+ lastBuildingOpen=Date.now();
+ touchDebug(origin+': '+defs[id].name);
+ // Open only once the pointer event dispatch has finished.
+ setTimeout(()=>showBuilding(id),0);
+ return true;
+}
+const isMapInput=el=>el===canvas||!!el?.closest?.('.cx-building-target');
+const inputRoot=$('viewport');
+function distance(){const p=[...pointers.values()];return p.length<2?0:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}
+inputRoot.addEventListener('pointerdown',e=>{
+ if(regionMode||!isMapInput(e.target))return;
+ try{e.target.setPointerCapture(e.pointerId)}catch{}
+ pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(pointers.size===1)gesture={startX:e.clientX,startY:e.clientY,moved:false,pinch:false};
+ else if(pointers.size===2&&gesture){gesture.pinch=true;gesture.moved=true;gesture.distance=distance();gesture.initialZoom=zoom}
+});
+inputRoot.addEventListener('pointermove',e=>{
+ if(!pointers.has(e.pointerId)||!gesture)return;
+ const prev=pointers.get(e.pointerId);
+ pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ const r=canvas.getBoundingClientRect();
+ if(pointers.size===2){
+  const d=distance(),pts=[...pointers.values()];
+  setZoom(gesture.initialZoom*d/Math.max(1,gesture.distance),(pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top);
+ }else if(pointers.size===1){
+  if(Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)>12)gesture.moved=true;
+  if(gesture.moved){panX+=e.clientX-prev.x;panY+=e.clientY-prev.y;draw()}
+ }
+});
+function buildingAtScreen(clientX,clientY){
+ const bounds=canvas.getBoundingClientRect();
+ const px=clientX-bounds.left,py=clientY-bounds.top;
+ const scale=base*zoom;
+ let best=null,bestScore=Infinity;
+ for(const [id,d] of Object.entries(defs)){
+  const x=vw/2+panX+(d.x+RIVER_OFFSET-WORLD_W/2)*scale;
+  const y=vh/2+panY+(d.y-WORLD_H/2)*scale;
+  const w=d.w*scale,h=d.h*scale;
+  const padX=Math.max(6,(46-w)/2),padY=Math.max(6,(46-h)/2);
+  if(px<x-padX||px>x+w+padX||py<y-padY||py>y+h+padY)continue;
+  const dx=Math.max(x-px,0,px-(x+w)),dy=Math.max(y-py,0,py-(y+h));
+  const score=dx*dx+dy*dy;
+  if(score<bestScore){best=id;bestScore=score}
+ }
+ return best;
+}
+function finishMapPointer(e){
+ if(!pointers.has(e.pointerId))return;
+ const tapped=e.type==='pointerup'&&pointers.size===1&&gesture&&!gesture.pinch&&!gesture.moved
+  &&Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)<15;
+ pointers.delete(e.pointerId);
+ lastPointerTap=Date.now();
+ if(tapped&&!regionMode){
+  const id=e.target.closest?.('.cx-building-target')?.dataset.building || buildingAtScreen(e.clientX,e.clientY);
+  openMapBuilding(id,'pointerup');
+ }
+ if(!pointers.size)gesture=null;
+ else if(gesture){gesture.pinch=true;gesture.moved=true}
+}
+inputRoot.addEventListener('pointerup',finishMapPointer);
+inputRoot.addEventListener('pointercancel',finishMapPointer);
+// Click fallback for non-pointer inputs. Ignore synthetic click after handled pointerup.
+inputRoot.addEventListener('click',e=>{
+ if(regionMode||pointers.size||Date.now()-lastPointerTap<700||!isMapInput(e.target))return;
+ const id=e.target.closest?.('.cx-building-target')?.dataset.building || buildingAtScreen(e.clientX,e.clientY);
+ openMapBuilding(id,'click');
+});
+// Fallback: On some Android WebViews a touch ends with pointercancel instead of pointerup.
+let nativeTouchStart=null;
+inputRoot.addEventListener('touchstart',e=>{
+ if(regionMode||e.touches.length!==1||!isMapInput(e.target)){nativeTouchStart=null;return}
+ const t=e.touches[0];nativeTouchStart={x:t.clientX,y:t.clientY,at:Date.now()};
+},{passive:true});
+inputRoot.addEventListener('touchend',e=>{
+ if(regionMode||!nativeTouchStart||e.changedTouches.length!==1)return;
+ const t=e.changedTouches[0],start=nativeTouchStart;nativeTouchStart=null;
+ if(Date.now()-start.at>700||Math.hypot(t.clientX-start.x,t.clientY-start.y)>16)return;
+ if(Date.now()-lastBuildingOpen<600)return;
+ openMapBuilding(buildingAtScreen(t.clientX,t.clientY),'touchend');
+},{passive:true});
+inputRoot.addEventListener('touchcancel',()=>{nativeTouchStart=null},{passive:true});
+canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();setZoom(zoom*(e.deltaY<0?1.12:.89),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+window.addEventListener('resize',resize);if('ResizeObserver' in window)new ResizeObserver(resize).observe(canvas);
+
+// REGIO RHENI: offline illustrated historical landscape; modern georeferencing is approximate.
+let regionMode=false,rZoom=1,rPanX=0,rPanY=0,rW=400,rH=500,rDpr=1,rTouch=new Map(),rGesture=null;
+const rc=$('regionCanvas'),rx=rc.getContext('2d');
+const RG=1320, CENTER_LAT=51.667,CENTER_LON=6.444, KM_PER_LAT=111.2,KM_PER_LON=69.0;
+const KM_SCALE=12.2; // 50 km radius = 610 map pixels
+const places=[
+{id:'colonia',name:'Colonia Ulpia Traiana',lat:51.667,lon:6.444,kind:'stadt',description:'Die römische Kolonie bei Xanten war um 150 n. Chr. eine bedeutende Stadt der Provinz Germania inferior. Die Stadtkarte ist separat erkundbar.',source:'https://www.lvr.de/archaeologischer-park-xanten/park-und-roemermuseum/die-roemische-stadt/'},
+{id:'vetera2',name:'Vetera II',lat:51.641,lon:6.477,kind:'lager',description:'Nach dem Bataveraufstand wurde bei Xanten ein neues Legionslager angelegt. Vetera II war im Jahr 150 n. Chr. besetzt. Der Marker zeigt nur den ungefähren Standort.',source:'https://www.lvr.de/archaeologischer-park-xanten/park-und-roemermuseum/die-roemische-stadt/'},
+{id:'vetera1',name:'Vetera I · Ruine',lat:51.639,lon:6.469,kind:'ruine',description:'Das ältere Legionslager auf dem Fürstenberg wurde im Bataveraufstand 69/70 n. Chr. zerstört. Um 150 n. Chr. ist hier kein aktives Legionslager zu zeigen.',source:'https://www.lvr.de/archaeologischer-park-xanten/park-und-roemermuseum/die-roemische-stadt/'},
+{id:'burginatium',name:'Burginatium',lat:51.735,lon:6.313,kind:'lager',description:'Römisches Reiterkastell am damaligen Rhein bei Kalkar. Der antike Flusslauf lag näher an diesem Kastell als der heutige.',source:'https://kalkar-bornsches-feld.der-niedergermanische-limes.de/'},
+{id:'noviomagus',name:'Ulpia Noviomagus',lat:51.846,lon:5.862,kind:'stadt',description:'Die antike Stadt im Gebiet des heutigen Nijmegen hatte ab etwa 100 n. Chr. einen hohen kommunalen Status. Sie liegt knapp innerhalb der hier dargestellten 50-km-Region.',source:'https://de.intonijmegen.com/entdecken/geschichte/historischerzeitstrahl/die-romischen-staedte'},
+{id:'asciburgium',name:'Asciburgium',lat:51.432,lon:6.672,kind:'lager',description:'Römischer Militärstandort im heutigen Moers-Asberg. Belegung und konkrete Bebauung wechselten im Laufe der Kaiserzeit; gezeigt wird ein Fundort, nicht ein exakt rekonstruierter Stand von 150.',source:'https://whc.unesco.org/en/list/1631/maps/'},
+{id:'gelduba',name:'Gelduba',lat:51.332,lon:6.682,kind:'lager',description:'Römischer Militär- und Siedlungsplatz im Gebiet des heutigen Krefeld-Gellep. Die genaue Ausprägung um 150 ist hier nicht rekonstruiert.',source:'https://whc.unesco.org/en/list/1631/maps/'},
+{id:'alpen',name:'Alpen-Drüpt',lat:51.588,lon:6.545,kind:'fund',description:'Archäologisch belegter Standort im Bereich des Niedergermanischen Limes. Der Marker repräsentiert einen Fundort, keine frei erfundene Römerstadt.',source:'https://whc.unesco.org/en/list/1631/maps/'},
+{id:'flueren',name:'Wesel-Flüren',lat:51.685,lon:6.559,kind:'fund',description:'Römische Fundplätze in der Umgebung von Wesel-Flüren gehören zum UNESCO-Welterbe Niedergermanischer Limes. Punkt schematisch gesetzt.',source:'https://whc.unesco.org/en/list/1631/maps/'},
+{id:'duisburg',name:'Duisburg-Werthausen',lat:51.422,lon:6.711,kind:'fund',description:'Römischer Fundort an der niedergermanischen Grenzzone; genaue Befunde, Siedlungsdauer und antike Uferführung sind gesondert zu prüfen.',source:'https://whc.unesco.org/en/list/1631/maps/'}
+];
+// River route is a consciously schematic visual approximation, NOT a palaeogeographic GIS reconstruction.
+// Flussläufe über die Kartengrenzen hinaus verlängert, damit nichts mitten im Bild endet.
+const romanRiver=[[52.05,4.70],[51.98,5.20],[51.93,5.52],[51.89,5.72],[51.86,5.90],[51.82,6.00],[51.79,6.11],[51.755,6.22],[51.73,6.30],[51.70,6.38],[51.675,6.48],[51.67,6.55],[51.65,6.66],[51.59,6.73],[51.51,6.74],[51.43,6.72],[51.35,6.72],[51.26,6.71],[51.17,6.74],[51.05,6.83],[50.93,6.96],[50.75,7.05],[50.52,7.16]];
+const riverBranch=[[51.85,5.88],[51.84,6.01],[51.81,6.15],[51.76,6.30],[51.71,6.43],[51.665,6.45],[51.64,6.49],[51.59,6.62],[51.585,6.72]];
+const SIDE_RIVERS=[
+ {name:'MOSA · MAAS',label:[51.47,6.02],w:[40,27,19,14],pts:[[50.50,5.66],[50.85,5.69],[51.05,5.85],[51.19,5.99],[51.37,6.17],[51.52,6.10],[51.70,5.97],[51.73,5.88],[51.77,5.70],[51.76,5.45],[51.75,5.10],[51.73,4.70]]},
+ {name:'RHENVS · NIEDERRHEIN',label:[51.985,5.62],w:[44,30,22,16],pts:[[51.84,6.05],[51.90,5.98],[51.96,5.86],[51.975,5.62],[51.99,5.35],[52.02,4.95],[52.03,4.70]]},
+ {name:'LVPIA · LIPPE',label:[51.705,6.98],w:[34,22,15,11],pts:[[51.655,6.60],[51.66,6.75],[51.68,6.95],[51.69,7.20],[51.67,7.50],[51.66,7.75],[51.67,8.25]]},
+ {name:'RVRA · RUHR',label:[51.385,7.16],w:[32,21,14,10],pts:[[51.45,6.73],[51.43,6.90],[51.42,7.05],[51.40,7.30],[51.44,7.60],[51.40,7.90],[51.39,8.25]]}
+];
+// Waldgebiete: heutige Namen, antike Ausdehnung unbekannt – nur als Landschaftseindruck.
+const FORESTS=[{name:'Reichswald',lat:51.74,lon:6.06,rx:95,ry:60},{name:'Hochwald',lat:51.655,lon:6.30,rx:62,ry:40},{name:'Diersfordter Wald',lat:51.71,lon:6.57,rx:50,ry:62},{name:'Hohe Mark',lat:51.75,lon:6.98,rx:120,ry:75},{name:'Hees',lat:51.642,lon:6.415,rx:28,ry:18},{name:'Kottenforst',lat:50.68,lon:7.05,rx:90,ry:60},{name:'Meinweg',lat:51.17,lon:6.15,rx:70,ry:50}];
+const R_EXT={x0:-780,y0:-780,x1:1320+780,y1:1320+780};
+const road1=['noviomagus','burginatium','colonia','vetera2','alpen','asciburgium','gelduba'];
+const road2=['colonia','flueren'];
+function geo(lat,lon){return {x:RG/2+(lon-CENTER_LON)*KM_PER_LON*KM_SCALE,y:RG/2-(lat-CENTER_LAT)*KM_PER_LAT*KM_SCALE}}
+function rBase(){return Math.min(rW,rH)/780}
+function rPoint(x,y){const scale=rBase()*rZoom;return {x:(x-rW/2-rPanX)/scale+RG/2,y:(y-rH/2-rPanY)/scale+RG/2}}
+function rScreen(x,y){const scale=rBase()*rZoom;return{x:rW/2+rPanX+(x-RG/2)*scale,y:rH/2+rPanY+(y-RG/2)*scale}}
+function resizeRegion(){const rect=rc.getBoundingClientRect();rW=rect.width||vw;rH=rect.height||vh;rDpr=Math.min(window.devicePixelRatio||1,2);rc.width=Math.max(1,Math.round(rW*rDpr));rc.height=Math.max(1,Math.round(rH*rDpr));if(regionMode)drawRegion()}
+function regionPolyline(arr,color,width,dash=[]){rx.beginPath();const P=arr.map(([lat,lon])=>geo(lat,lon));rx.moveTo(P[0].x,P[0].y);if(P.length<3||dash.length){for(let i=1;i<P.length;i++)rx.lineTo(P[i].x,P[i].y)}else{for(let i=1;i<P.length-1;i++){const mx=(P[i].x+P[i+1].x)/2,my=(P[i].y+P[i+1].y)/2;rx.quadraticCurveTo(P[i].x,P[i].y,mx,my)}rx.lineTo(P[P.length-1].x,P[P.length-1].y)}rx.strokeStyle=color;rx.lineWidth=width;rx.setLineDash(dash);rx.lineJoin='round';rx.lineCap='round';rx.stroke();rx.setLineDash([])}
+let regionGround=null;
+function buildRegionGround(){const S=.55,W=R_EXT.x1-R_EXT.x0,H=R_EXT.y1-R_EXT.y0,c=document.createElement('canvas');c.width=Math.ceil(W*S);c.height=Math.ceil(H*S);const g=c.getContext('2d');g.scale(S,S);g.translate(-R_EXT.x0,-R_EXT.y0);
+ g.fillStyle='#b4b28b';g.fillRect(R_EXT.x0,R_EXT.y0,W,H);
+ for(let i=0;i<5200;i++){let x=R_EXT.x0+random(i,19)*W,y=R_EXT.y0+random(i,29)*H;g.fillStyle=i%5===0?'#9ca684':i%3===0?'#a7b192':'#c4bb94';g.beginPath();g.ellipse(x,y,10+random(i,48)*65,5+random(i,67)*30,random(i,44)*Math.PI,0,7);g.fill()}
+ g.globalAlpha=.36;for(let i=0;i<880;i++){let x=R_EXT.x0+random(i,91)*W,y=R_EXT.y0+random(i,39)*H;g.fillStyle='#687f61';g.beginPath();g.ellipse(x,y,14+random(i,62)*31,8+random(i,61)*20,random(i,50)*3,0,7);g.fill()}
+ // Waldgebiete als dichte, dunklere Flecken
+ for(const f of FORESTS){const q=geo(f.lat,f.lon);for(let k=0;k<70;k++){const a=random(k,f.rx)*Math.PI*2,d=Math.sqrt(random(f.ry,k));g.globalAlpha=.55;g.fillStyle=k%3?'#5d7655':'#4d6649';g.beginPath();g.ellipse(q.x+Math.cos(a)*d*f.rx,q.y+Math.sin(a)*d*f.ry,10+random(k,3)*14,8+random(k,4)*10,0,0,7);g.fill()}}
+ g.globalAlpha=1;regionGround=c}
+function clampRegionPan(){const sc=rBase()*rZoom;if(!sc)return;const hw=rW/2/sc,hh=rH/2/sc;let cx=RG/2-rPanX/sc,cy=RG/2-rPanY/sc;cx=R_EXT.x1-R_EXT.x0<=2*hw?RG/2:Math.min(R_EXT.x1-hw,Math.max(R_EXT.x0+hw,cx));cy=R_EXT.y1-R_EXT.y0<=2*hh?RG/2:Math.min(R_EXT.y1-hh,Math.max(R_EXT.y0+hh,cy));rPanX=-(cx-RG/2)*sc;rPanY=-(cy-RG/2)*sc}
+function drawRegion(){if(!regionMode||!rW||!rH||document.hidden)return;clampRegionPan();rx.setTransform(rDpr,0,0,rDpr,0,0);rx.clearRect(0,0,rW,rH);rx.fillStyle='#899474';rx.fillRect(0,0,rW,rH);rx.save();rx.translate(rW/2+rPanX,rH/2+rPanY);rx.scale(rBase()*rZoom,rBase()*rZoom);rx.translate(-RG/2,-RG/2);
+// painted terrain, reproducible and lightweight
+if(!regionGround)buildRegionGround();rx.drawImage(regionGround,R_EXT.x0,R_EXT.y0,R_EXT.x1-R_EXT.x0,R_EXT.y1-R_EXT.y0);
+// marshy alluvial belt and painted Rhine / distributary, schematic
+regionPolyline(romanRiver,'#879c95',91);regionPolyline(romanRiver,'#a2c0b7',62);regionPolyline(romanRiver,'#537f83',45);regionPolyline(romanRiver,'#729da2',35);
+regionPolyline(riverBranch,'#6f9997',26);regionPolyline(riverBranch,'#94b5ae',17);
+for(const r of SIDE_RIVERS){regionPolyline(r.pts,'#879c95',r.w[0]);regionPolyline(r.pts,'#a2c0b7',r.w[1]);regionPolyline(r.pts,'#537f83',r.w[2]);regionPolyline(r.pts,'#729da2',r.w[3])}
+rx.save();rx.font='italic 22px Georgia';rx.textAlign='center';rx.fillStyle='#2f4a4c';for(const r of SIDE_RIVERS){const q=geo(...r.label);rx.fillText(r.name,q.x,q.y)}{const q=geo(51.50,6.86);rx.font='italic 26px Georgia';rx.fillText('RHENVS · RHEIN',q.x+40,q.y)}rx.font='italic 17px Georgia';rx.fillStyle='#2c3a27';for(const f of FORESTS){const q=geo(f.lat,f.lon);rx.fillText(f.name,q.x,q.y+5)}rx.restore();
+for(let j=0;j<9;j++){const o=(j*109+visualSeconds*(motionEnabled&&!state.paused?2.8:0))%1200;const pt=romanRiver[Math.min(romanRiver.length-1,Math.floor(o/90))];if(pt){const q=geo(...pt);rx.fillStyle='#d0dad0';rx.globalAlpha=.3;rx.fillRect(q.x+j*2,q.y,25,2)}}rx.globalAlpha=1;
+// trading roads, indicative corridors only
+for(const seq of [road1,road2]){const route=seq.map(id=>places.find(p=>p.id===id)).filter(Boolean).map(p=>[p.lat,p.lon]);regionPolyline(route,'#625943',11);regionPolyline(route,'#d3bc86',6,[11,7])}
+const c=geo(CENTER_LAT,CENTER_LON);rx.beginPath();rx.rect(R_EXT.x0,R_EXT.y0,R_EXT.x1-R_EXT.x0,R_EXT.y1-R_EXT.y0);rx.arc(c.x,c.y,50*KM_SCALE,0,Math.PI*2,true);rx.fillStyle='rgba(44,54,40,.2)';rx.fill('evenodd');rx.beginPath();rx.arc(c.x,c.y,50*KM_SCALE,0,7);rx.strokeStyle='#fff0c4';rx.lineWidth=3;rx.setLineDash([18,13]);rx.stroke();rx.setLineDash([]);rx.fillStyle='#342e22';rx.font='bold 23px Georgia';rx.textAlign='center';rx.fillText('REGIO RHENI · CA. 150 N. CHR.',RG/2,52);
+drawRegionalConvoys();
+// location symbols
+for(const p of places){const q=geo(p.lat,p.lon),isC=p.id==='colonia';rx.save();rx.translate(q.x,q.y);rx.fillStyle=p.kind==='ruine'?'#66594f':isC?'#e4c784':'#343e31';rx.strokeStyle='#f6e6ba';rx.lineWidth=2.5;rx.beginPath();rx.arc(0,0,isC?14:10,0,7);rx.fill();rx.stroke();rx.fillStyle=p.kind==='ruine'?'#e9c9ac':'#f6e9c4';rx.font=`bold ${isC?20:15}px system-ui`;rx.textAlign='center';rx.textBaseline='middle';rx.fillText(p.kind==='ruine'?'×':p.kind==='stadt'?'◆':p.kind==='lager'?'▣':'•',0,0);rx.restore();const name=p.id==='colonia'?'COLONIA XANTEN':p.name;const skip=rZoom<1.0&&['vetera1','flueren','alpen','duisburg'].includes(p.id);if(skip)continue;rx.font=`${isC?'bold ':''}${isC?23:17}px Georgia`;rx.textAlign='center';const tw=rx.measureText(name).width+19;rx.fillStyle='#233025df';rx.beginPath();rx.roundRect(q.x-tw/2,q.y+14,tw,28,6);rx.fill();rx.fillStyle='#f3e8cb';rx.fillText(name,q.x,q.y+34)}
+rx.restore();rx.fillStyle='#223127dd';rx.fillRect(12,rH-30,108,21);rx.fillStyle='#e6d6ac';rx.font='11px system-ui';rx.textAlign='left';rx.fillText('≈ 50 km Radius',19,rH-15);
+}
+function regionZoomBy(mult,x=rW/2,y=rH/2){const before=rPoint(x,y);rZoom=clamp(rZoom*mult,.65,5);const after=rPoint(x,y);rPanX+=(after.x-before.x)*rBase()*rZoom;rPanY+=(after.y-before.y)*rBase()*rZoom;drawRegion()}
+function setRegionMode(on){regionMode=on;if(typeof buildingTargets!=='undefined')buildingTargets.style.display=on?'none':'block';$('regionView').classList.toggle('active',on);$('regionInfo').classList.toggle('active',on);$('regionLegend').classList.toggle('active',on);$('regionSwitch').classList.toggle('active',on);$('regionSwitch').textContent=on?'⌂ ZUR STADT':'◈ REGION · 50 KM';$('mapHelp').textContent=on?'Fundorte / Handelswege antippen · 50 km Radius':'Schiffe fahren · Bürger bewegen sich · Gebäude antippen';if(on){resizeRegion();drawRegion()}else draw()}
+$('regionSwitch').onclick=()=>{closeSheet();setRegionMode(!regionMode)};
+function showPlace(p){opened='region-'+p.id;let isCity=p.id==='colonia';const tradeOk=Boolean(TRADE_ROUTES.find(r=>r.place===p.id));openSheet(`<span class="kicker">REGIO RHENI · CA. 150 N. CHR.</span><h2>${p.name}</h2><p>${p.description}</p><div class="notice">Historisch belegter Ort oder Fundplatz. Die Markerpositionen sind ungefähr, Wege und antiker Flusslauf bewusst schematisch. Keine metergenaue archäologische Karte.</div><div class="actions"><button type="button" id="regioBack">${isCity?'Stadt betreten':'Zur Regionskarte'}</button><button type="button" id="regioSource">Historische Quelle ↗</button>${tradeOk?'<button type="button" id="regioTrade">Handel mit diesem Ort ⚓</button>':''}</div>`);if(tradeOk)$('regioTrade').onclick=()=>showTrade(p.id);$('regioBack').onclick=()=>{closeSheet();if(isCity)setRegionMode(false)};$('regioSource').onclick=()=>window.open(p.source,'_blank','noopener')}
+rc.addEventListener('pointerdown',e=>{rc.setPointerCapture(e.pointerId);rTouch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(rTouch.size===1)rGesture={sx:e.clientX,sy:e.clientY,moved:false,lastDist:0};else if(rTouch.size===2){rGesture.moved=true;rGesture.lastDist=rTouchDistance()}});
+function rTouchDistance(){const p=[...rTouch.values()];return Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}
+rc.addEventListener('pointermove',e=>{if(!rTouch.has(e.pointerId))return;const prev=rTouch.get(e.pointerId);rTouch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(!rGesture)return;if(rTouch.size===2){const distance=rTouchDistance();const arr=[...rTouch.values()];const r=rc.getBoundingClientRect();if(rGesture.lastDist>0)regionZoomBy(distance/rGesture.lastDist,(arr[0].x+arr[1].x)/2-r.left,(arr[0].y+arr[1].y)/2-r.top);rGesture.lastDist=distance;rGesture.moved=true}else{rPanX+=e.clientX-prev.x;rPanY+=e.clientY-prev.y;if(Math.hypot(e.clientX-rGesture.sx,e.clientY-rGesture.sy)>9)rGesture.moved=true;drawRegion()}});
+function rFinish(e){if(!rTouch.has(e.pointerId))return;const tap=rTouch.size===1&&rGesture&&!rGesture.moved&&Math.hypot(e.clientX-rGesture.sx,e.clientY-rGesture.sy)<10;rTouch.delete(e.pointerId);if(tap){const rect=rc.getBoundingClientRect();const x=e.clientX-rect.left,y=e.clientY-rect.top;let nearest=null,dist=1e9;for(const p of places){const q=geo(p.lat,p.lon),z=rScreen(q.x,q.y);let d=Math.hypot(z.x-x,z.y-y);if(d<dist){nearest=p;dist=d}}if(nearest&&dist<Math.max(27,35*rZoom*.5))showPlace(nearest)}if(!rTouch.size)rGesture=null;else{rGesture.moved=true;rGesture.lastDist=0}}
+rc.addEventListener('pointerup',rFinish);rc.addEventListener('pointercancel',rFinish);
+rc.addEventListener('wheel',e=>{e.preventDefault();const r=rc.getBoundingClientRect();regionZoomBy(e.deltaY<0?1.15:.87,e.clientX-r.left,e.clientY-r.top)},{passive:false});
+
+
+// TRADE SIMULATION: historically inspired, fictional supply chains; not attested individual journeys.
+const TRADE_ROUTES=[
+ {id:'nijmegen',place:'noviomagus',label:'Ulpia Noviomagus',kind:'river',duration:31,export:'wood',cost:9,amount:7,import:'grain',gain:25,reward:7,risk:11,via:['colonia','burginatium','noviomagus'],note:'Nordwestlicher Rheinhandel · schematische Wasserverbindung'},
+ {id:'burginatium',place:'burginatium',label:'Burginatium',kind:'river',duration:12,export:'wood',cost:5,amount:5,import:'grain',gain:14,reward:3,risk:8,via:['colonia','burginatium'],note:'Versorgungsverkehr am niedergermanischen Limes'},
+ {id:'vetera',place:'vetera2',label:'Vetera II',kind:'road',duration:8,export:'grain',cost:4,amount:6,import:'coins',gain:15,reward:5,risk:5,via:['colonia','vetera2'],note:'Kurze regionale Fuhre zum Legionsstandort'},
+ {id:'asciburgium',place:'asciburgium',label:'Asciburgium',kind:'road',duration:27,export:'grain',cost:12,amount:9,import:'wood',gain:24,reward:8,risk:18,via:['colonia','vetera2','alpen','asciburgium'],note:'Südlicher Landweg · gezeichnete Trasse nur angenähert'},
+ {id:'gelduba',place:'gelduba',label:'Gelduba',kind:'river',duration:36,export:'wood',cost:15,amount:11,import:'coins',gain:36,reward:11,risk:21,via:['colonia','flueren','asciburgium','gelduba'],note:'Südlicher Transport entlang des Rheins · nur schematisch'}
+];
+const RESOURCE_NAMES={grain:'Getreide',wood:'Holz',coins:'Münzen',water:'Wasser'};
+const tradeClock=()=>`DIES ${roman(state.day)} · ${String(state.hour).padStart(2,'0')}:00`;
+function tradeEvent(msg){addLog(msg);toast(msg)}
+function dispatchTrade(id,escort=false,silent=false){
+ const r=TRADE_ROUTES.find(x=>x.id===id);if(!r)return;
+ if(state.convoys.length>=4)return toast('Maximal vier Transporte gleichzeitig.');
+ const escortCost=escort?8:0;
+ if(state.coins<r.cost+escortCost)return toast('Zu wenige Münzen für den Transport.');
+ if(state[r.export]<r.amount)return toast(`Zu wenig ${RESOURCE_NAMES[r.export]}.`);
+ state.coins-=r.cost+escortCost;state[r.export]-=r.amount;
+ state.convoys.push({id:state.nextConvoyId++,route:id,phase:'out',progress:0,duration:r.duration,escort,incident:false});
+ tradeEvent(`${r.kind==='river'?'Handelsschiff':'Warenkarre'} nach ${r.label} aufgebrochen (${RESOURCE_NAMES[r.export]} −${r.amount}).`);
+ save();updateHeader();if(!silent)showTrade(id);draw();
+}
+function advanceConvoys(){
+ for(let i=state.convoys.length-1;i>=0;i--){
+  const c=state.convoys[i],r=TRADE_ROUTES.find(x=>x.id===c.route);if(!r){state.convoys.splice(i,1);continue}
+  c.progress++;
+  if(c.progress<c.duration)continue;
+  if(c.phase==='out'){
+    const danger=Math.max(2,r.risk+(100-state.cityOrder)*.22-(c.escort?15:0)+(state.buildings.hafen.condition<40?8:0));
+    // Stable outcome for saved convoys, no extra dice roll each render.
+    const roll=(Math.imul(c.id,977)+state.day*37+r.duration*13)%100;
+    c.incident=roll<danger;
+    c.phase='back';c.progress=0;c.duration=Math.max(4,Math.round(r.duration*.8));
+    tradeEvent(c.incident?`Zwischenfall bei ${r.label}: Ladung teilweise beschädigt. Rücktransport läuft.`:`${r.label} erreicht. Waren ausgetauscht; Rückreise beginnt.`);
+  }else{
+    const delivered=c.incident?Math.ceil(r.gain*.5):r.gain;
+    state.coins+=r.reward;
+    state.deliveries++;
+    state.tradeReputation=clamp(state.tradeReputation+(c.incident?-2:2));
+    state.citySupply=clamp(state.citySupply+(r.import==='grain'?7:2));
+    state.buildings.hafen.supplies=clamp(state.buildings.hafen.supplies+(c.incident?3:9));
+    state.buildings.hafen.market=clamp(state.buildings.hafen.market+5);
+    // Der Hafen nimmt die Ladung zunächst an; Lagerarbeiter bringen sie danach in die Stadt.
+    state.portQueue.push({resource:r.import,amount:delivered,origin:r.label,unloaded:0,remaining:3+Math.ceil(delivered/12),id:c.id});
+    tradeEvent(`${c.incident?'Beschädigter':'Erfolgreicher'} Transport aus ${r.label} am Kai: ${delivered} ${RESOURCE_NAMES[r.import]} warten auf Entladung.`);
+    state.convoys.splice(i,1);
+  }
+ }
+}
+
+// V0.6: vereinfachte, nachvollziehbare Stadtroutinen. Eine Simulationsstunde = eine echte Stunde.
+function cityLog(text){addLog(text)}
+function processCityLogistics(){
+  // Hafenumladung erfolgt nur während der Arbeitszeit; pausierte Zeit stoppt alles.
+  const working=state.hour>=6&&state.hour<=20;
+  if(working&&state.autoWarehouse){
+    for(let i=state.portQueue.length-1;i>=0;i--){
+      const q=state.portQueue[i];if(state.buildings.hafen.condition<40&&state.hour%2===1)continue;q.remaining=Math.max(0,(q.remaining||0)-1);
+      if(q.remaining>0)continue;
+      const free=q.resource==='coins'?Number.POSITIVE_INFINITY:Math.max(0,100-state[q.resource]);
+      const amount=Math.min(q.amount,free);
+      if(amount>0){state[q.resource]+=amount;state.jobsCompleted++;state.buildings.lager.market=clamp(state.buildings.lager.market+3);cityLog(`Lagerkarren haben ${amount} ${RESOURCE_NAMES[q.resource]} aus ${q.origin} eingelagert.`)}
+      if(amount<q.amount){cityLog(`${q.amount-amount} ${RESOURCE_NAMES[q.resource]} wegen voller Vorräte nicht eingelagert.`)}
+      state.portQueue.splice(i,1);
+    }
+  }
+  // Werkstätten erzeugen aus Holz kleinere Einnahmen, nur in Arbeitsschichten.
+  if(state.autoWorkshop&&working&&state.hour===15&&state.wood>=3&&state.buildings.werkstatt.condition>=25){
+     state.wood-=3;state.coins+=workshopIncome();state.jobsCompleted++;state.buildings.werkstatt.market=clamp(state.buildings.werkstatt.market+3);
+     if(state.day%2===0)cityLog(`Handwerker liefern fertige Waren an den Markt (−3 Holz, +${workshopIncome()} Münzen).`);
+  }
+  // Optionaler vorsichtiger Autohandel, keine automatische Wachschutz-Ausgabe.
+  if(state.autoTrade&&state.hour===8&&state.lastAutoDispatchDay!==state.day&&state.convoys.length<4){
+    const r=state.grain<35?TRADE_ROUTES.find(r=>r.import==='grain'&&state[r.export]>=r.amount&&state.coins>=r.cost+20):null;
+    if(r){state.lastAutoDispatchDay=state.day;dispatchTrade(r.id,false,true);cityLog(`Automatischer Versorgungsauftrag: ${r.label}.`)}
+  }
+}
+function showLogistics(){
+ opened='logistik';
+ const awaiting=state.portQueue.reduce((sum,q)=>sum+q.amount,0);
+ const stalled=state.portQueue.length>0&&!state.autoWarehouse;
+ openSheet(`<span class="kicker">PORTVS · HORREA · OFFICINAE</span><h2>Hafen & Stadtlogistik</h2><p>Hier wird sichtbar, wie Waren vom Schiff über den Kai und durch die Straßen in die Lager gelangen. Der Betrieb richtet sich nach der simulierten Tageszeit.</p><div class="trade-summary"><div><b>${state.portQueue.length}</b><small>Ladungen am Kai</small></div><div><b>${awaiting}</b><small>Waren warten</small></div><div><b>${state.jobsCompleted}</b><small>Aufträge erledigt</small></div></div><div class="divider"></div><span class="kicker">AUTOMATISCHE ABLÄUFE</span><div class="logistics-options"><label><input type="checkbox" data-log="autoWarehouse" ${state.autoWarehouse?'checked':''}><span><b>Hafenarbeiter & Lagerkarren</b><small>Entladen nach 3–6 Arbeitsstunden, transportieren zum Speicher. Volle Lager verlieren den Überschuss.</small></span></label><label><input type="checkbox" data-log="autoWorkshop" ${state.autoWorkshop?'checked':''}><span><b>Werkstattbetrieb</b><small>Tagsüber Holz verarbeiten und Münzen erwirtschaften, sofern das Gebäude intakt ist.</small></span></label><label><input type="checkbox" data-log="autoTrade" ${state.autoTrade?'checked':''}><span><b>Versorgungsfahrten automatisch senden</b><small>Bei Getreidemangel und genügend Rücklagen maximal einmal am Tag eine passende Route starten.</small></span></label></div><div class="divider"></div><span class="kicker">AM KAI</span>${state.portQueue.length?state.portQueue.map(q=>`<div class="trade-route"><h3>⚓ ${q.origin}</h3><p>${q.amount} ${RESOURCE_NAMES[q.resource]} · noch ${q.remaining} echte Arbeitsstunden bis zum Lager</p><div class="trip-meter"><div style="width:${Math.max(5,100-q.remaining/6*100)}%"></div></div></div>`).join(''):'<p>Keine Ladung wartet. Sende einen Transport im Handelsmenü.</p>'}${stalled?'<div class="trade-alert">Der Umschlag ist deaktiviert: Die Hafenladung wartet am Kai.</div>':''}<div class="notice">Spielmodell: keine dokumentierten antiken Schichtpläne, Mengen oder Arbeitsabläufe. Mit ausgeschalteter Zeit laufen auch keine Produktions- und Transportvorgänge.</div><button class="wide-btn" id="backTrade" type="button">Zurück zum Handel</button>`);
+ $('sheetContent').querySelectorAll('[data-log]').forEach(el=>el.onchange=()=>{state[el.dataset.log]=el.checked;save();showLogistics();toast('Stadtlogistik angepasst')});$('backTrade').onclick=()=>showTrade();
+}
+function showTrade(focus=''){
+ opened='handel';
+ const active=state.convoys.map(c=>({c,r:TRADE_ROUTES.find(r=>r.id===c.route)})).filter(x=>x.r);
+ const activeMarkup=active.length?active.map(({c,r})=>{
+  const remaining=c.duration-c.progress;
+  return `<div class="trade-route"><h3>${r.kind==='river'?'⛵':'♜'} ${r.label}</h3><div class="route-details"><span>${c.phase==='out'?'Hinfahrt':'Rückfahrt'}</span><span>noch ${remaining} echte Std. bis Etappe</span><span>${c.escort?'Wachschutz aktiv':'Ohne Wachschutz'}</span></div><div class="trip-meter"><div style="width:${Math.round(c.progress/c.duration*100)}%"></div></div>${c.incident?'<span class="trade-badge">Transport beschädigt</span>':''}</div>`;
+ }).join(''):'<p>Momentan ist kein Schiff und keine Warenkarre auf einer Handelsreise.</p>';
+ const routes=TRADE_ROUTES.filter(r=>!focus||r.place===focus||r.id===focus);
+ openSheet(`<span class="kicker">COMMERCIUM · RHENVS</span><h2>Handel & Transporte</h2><p>Starte Warenlieferungen von Xanten zu regionalen Orten. Auf der Regionalkarte werden laufende Transporte sichtbar. Ein Transport benötigt eine Hin- und Rückfahrt. Die Rückladung wird anschließend am Hafen entladen und eingelagert.</p><div class="trade-summary"><div><b>${active.length}/4</b><small>Unterwegs</small></div><div><b>${state.deliveries}</b><small>Ankünfte</small></div><div><b>${Math.round(state.tradeReputation)}%</b><small>Handelsruf</small></div></div><button class="wide-btn" id="openLogistics" type="button">⚒ Hafen & Stadtlogistik verwalten</button><span class="kicker">UNTERWEGS</span>${activeMarkup}<div class="divider"></div><span class="kicker">NEUEN TRANSPORT SENDEN</span>${routes.map(r=>`<div class="trade-route"><h3>${r.kind==='river'?'⛵':'♜'} ${r.label}</h3><p>${r.note}</p><div class="route-details"><span>${r.kind==='river'?'Schiff':'Landkarre'}</span><span>Hin ${r.duration} echte Std. + Rück ${Math.round(r.duration*.8)} Std.</span><span>Risiko ca. ${r.risk}% vor Sicherheitslage</span></div><p><b>Ausgabe:</b> ${r.amount} ${RESOURCE_NAMES[r.export]} + ${r.cost} Münzen<br><b>Bei unbeschädigter Rückkehr:</b> ${r.gain} ${RESOURCE_NAMES[r.import]} + ${r.reward} Münzen</p><button data-dispatch="${r.id}" data-escort="0" ${state.convoys.length>=4?'disabled':''}>Transport senden</button><button data-dispatch="${r.id}" data-escort="1" ${state.convoys.length>=4?'disabled':''}>Mit Wache (+8 ◈)</button></div>`).join('')}<div class="notice">Spielsimulation: Handelspartner, Warenmengen, Routendauer und Vorfälle sind modellierte Annahmen. Die antiken Wegstrecken sind nicht exakt kartiert. Vetera I ist als Ruine bewusst kein Handelsziel. Im pausierten Spiel steht auch der Handel still.</div>${focus?'<button class="wide-btn" id="showAllRoutes">Alle Handelsrouten anzeigen</button>':''}`);
+ $('openLogistics').onclick=showLogistics;
+ $('sheetContent').querySelectorAll('[data-dispatch]').forEach(btn=>btn.onclick=()=>dispatchTrade(btn.dataset.dispatch,btn.dataset.escort==='1'));
+ if(focus)$('showAllRoutes').onclick=()=>showTrade();
+}
+function tradePath(r){return r.via.map(id=>places.find(p=>p.id===id)).filter(Boolean).map(p=>geo(p.lat,p.lon))}
+function pathPoint(points,t){if(points.length<2)return points[0]||{x:0,y:0};let lengths=[],total=0;for(let i=1;i<points.length;i++){let d=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);lengths.push(d);total+=d}let position=t*total;for(let i=0;i<lengths.length;i++){if(position<=lengths[i]||i===lengths.length-1){const f=lengths[i]?Math.max(0,Math.min(1,position/lengths[i])):0;return{x:points[i].x+(points[i+1].x-points[i].x)*f,y:points[i].y+(points[i+1].y-points[i].y)*f}}position-=lengths[i]}return points[points.length-1]}
+function drawRegionalConvoys(){
+ for(const c of state.convoys){const r=TRADE_ROUTES.find(r=>r.id===c.route);if(!r)continue;const path=tradePath(r);let t=c.progress/c.duration;if(c.phase==='back')t=1-t;
+ const point=pathPoint(path,t);rx.save();rx.translate(point.x,point.y);rx.fillStyle='#242c23';rx.beginPath();rx.arc(0,0,17,0,Math.PI*2);rx.fill();rx.strokeStyle=c.incident?'#cf8166':'#f6d386';rx.lineWidth=3;rx.stroke();rx.fillStyle='#f8e6bc';rx.font='bold 22px system-ui';rx.textAlign='center';rx.textBaseline='middle';rx.fillText(r.kind==='river'?'⛵':'◆',0,0);rx.restore();
+ }
+}
+
+// Animation is independent from the simulated clock; pausing time also pauses the city.
+function animationFrame(ts){rafId=0;if(document.hidden)return;
+ if(!lastFrame)lastFrame=ts;
+ const elapsed=Math.min(.08,(ts-lastFrame)/1000);lastFrame=ts;
+ if(motionEnabled&&!state.paused){visualSeconds+=elapsed;if(ts-lastPaint>=41){lastPaint=ts;draw()}}
+ rafId=requestAnimationFrame(animationFrame);
+}
+document.addEventListener('visibilitychange',()=>{lastFrame=0;if(document.hidden){cancelAnimationFrame(rafId);rafId=0}else if(!rafId)rafId=requestAnimationFrame(animationFrame)});
+// Limit redraws on slow phones by rendering at most 24 fps.
+// Bootstrap after all map, trade and animation modules have been initialized.
+if(!state.lastCalendarDay)state.lastCalendarDay=actualDayKey(localParts(new Date()));
+state.hour=actualTime().hour;
+refreshAlerts(false);
+tick();save();
+let previousRealMinute=-1;
+setInterval(tick,60000);
+setInterval(()=>{updateHeader();refreshCooldownButtons();const t=actualTime();if(t.minute!==previousRealMinute){previousRealMinute=t.minute;draw()}},1000);
+window.addEventListener('pagehide',()=>{tick();save()});
+window.addEventListener('pageshow',()=>tick());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick();else save()});
+updateHeader();resize();if(!rafId)rafId=requestAnimationFrame(animationFrame);
+window.__cxBooted=true; // Signal an die App-Hülle: Spiel ist vollständig gestartet
+})();
+
+</script>
+</body>
+<!-- Touch-Fix: DOM-Hitflächen, gemeinsame Pointer-Gesten und sichere lokale Spielstandkopie. -->
+</html>
