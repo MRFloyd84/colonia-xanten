@@ -23,6 +23,19 @@
 /* V1.0 · Abklingzeiten und Auswirkungen */
 .actions button small{display:block;font-size:10px;font-weight:500;color:#d3c39f;margin-top:4px;letter-spacing:.2px}.actions button.cooling{background:#363b31;border-color:#6f6750}
 .effects{margin:6px 0 2px}.effect{font-size:12px;padding:8px 10px;border-radius:6px;margin:6px 0;line-height:1.45}.effect.bad{background:#4a3229;border-left:3px solid #d0805f;color:#f3d8c8}.effect.good{background:#2f4430;border-left:3px solid #8fb36f;color:#dfead0}.effect.info{background:#323d32;border-left:3px solid #8c967f;color:#dcd9c8}
+
+.editor-panel[hidden]{display:none!important}
+.editor-panel{position:absolute;z-index:20;left:9px;bottom:58px;width:min(285px,calc(100% - 85px));padding:10px;border:1px solid #ceb88a;border-radius:12px;background:rgba(18,31,25,.96);color:#f4e4bc;box-shadow:0 8px 30px #0008;font:13px system-ui,sans-serif;pointer-events:auto;touch-action:manipulation}
+.editor-heading,.editor-footer{display:flex;align-items:center;justify-content:space-between;gap:7px}
+.editor-heading strong{font-size:12px;letter-spacing:.08em}
+.editor-name{font-weight:700;margin:7px 0 2px}
+.editor-details{font-size:11px;min-height:24px;color:#d8cfb5}
+.editor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:8px 0}
+.editor-panel button{min-height:33px;background:#30443b;color:#f7e9bd;border:1px solid #8a8269;border-radius:7px;font:600 12px system-ui,sans-serif}
+.editor-panel button:disabled{opacity:.35}
+.editor-panel button:active{background:#806c42}
+.editor-footer button{flex:1;padding:4px}
+.editor-panel small{display:block;font-size:10px;line-height:1.35;color:#c2bba7;margin-top:6px}
 </style>
   <title>COLONIA XANTEN · 150 n. Chr. · v1.0</title>
 </head>
@@ -41,8 +54,30 @@
       <button type="button" id="zoomOut" aria-label="Verkleinern">−</button>
       <button type="button" id="resetView" aria-label="Ansicht zentrieren">⌖</button>
       <button type="button" id="motionToggle" aria-label="Animation ausschalten" title="Animation an/aus">◉</button>
+      <button type="button" id="editorToggle" aria-label="Kartenbearbeitung einschalten" title="Gebäude anordnen">✎</button>
     </div>
     <div class="map-help" id="mapHelp">Schiffe fahren · Bürger bewegen sich · Gebäude antippen</div>
+    <div id="editorPanel" class="editor-panel" hidden>
+   <div class="editor-heading"><strong>✎ KARTEN-EDITOR</strong><button type="button" id="editorDone">Fertig ✓</button></div>
+   <div class="editor-name" data-editor-title>Gebäude oder Wohnblock antippen</div>
+   <div class="editor-details" data-editor-details>Gebäude antippen, verschieben oder mit den Pfeilen ausrichten.</div>
+   <div class="editor-grid">
+    <button type="button" data-map-edit="rotate-left" data-needs-selection>↶ 15°</button>
+    <button type="button" data-map-edit="up" data-needs-selection>↑</button>
+    <button type="button" data-map-edit="rotate-right" data-needs-selection>15° ↷</button>
+    <button type="button" data-map-edit="left" data-needs-selection>←</button>
+    <button type="button" data-map-edit="down" data-needs-selection>↓</button>
+    <button type="button" data-map-edit="right" data-needs-selection>→</button>
+    <button type="button" data-map-edit="smaller" data-needs-selection>− Größe</button>
+    <button type="button" data-map-edit="reset" data-needs-selection>↺ Objekt</button>
+    <button type="button" data-map-edit="larger" data-needs-selection>+ Größe</button>
+   </div>
+   <div class="editor-footer">
+    <button type="button" id="editorResetAll">Alles zurücksetzen</button>
+    <button type="button" id="editorSave">Speichern</button>
+   </div>
+   <small>Nur Darstellung. Drehungen über 15° verändern die Bildperspektive, nicht die 3D-Ansicht.</small>
+  </div>
     <div class="map-compass"><span>N</span><b>✦</b></div>
     <div class="notification" id="notification" role="status" aria-live="polite"></div>
   </main>
@@ -651,6 +686,7 @@ for(const [id,url,cellW,cellH,cols] of [
 const MAP_LAYOUT_KEY='cx-map-layout-v1';
 const mapLayout=(()=>{try{const x=JSON.parse(localStorage.getItem(MAP_LAYOUT_KEY)||'{}');return x&&typeof x==='object'&&!Array.isArray(x)?x:{}}catch{return {}}})();
 let editorMode=false,editorSelected=null,layoutRevision=0;
+const editorPanel=$('editorPanel');
 const editorBlocks={};
 for(let row=0;row<6;row++)for(let col=0;col<7;col++){
  const x=279+col*115,y=176+row*116;
@@ -1107,7 +1143,7 @@ function clampPan(){const sc=base*zoom;if(!sc)return;const hw=vw/2/sc,hh=vh/2/sc
 const staticCanvas=document.createElement('canvas');let staticKey='';
 function draw(){if(regionMode){drawRegion();return}if(!vw||!vh||document.hidden)return;
  clampPan();
- const key=[canvas.width,canvas.height,zoom.toFixed(4),panX.toFixed(2),panY.toFixed(2),liveClock.season].join('|');
+ const key=[canvas.width,canvas.height,zoom.toFixed(4),panX.toFixed(2),panY.toFixed(2),liveClock.season,layoutRevision].join('|');
  if(key!==staticKey){staticKey=key;if(staticCanvas.width!==canvas.width||staticCanvas.height!==canvas.height){staticCanvas.width=canvas.width;staticCanvas.height=canvas.height}
   const g=staticCanvas.getContext('2d');ctx=g;try{g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle='#859375';g.fillRect(0,0,vw,vh);g.save();transform();g.translate(RIVER_OFFSET,0);drawStaticMap();g.restore()}finally{ctx=mainCtx}}
  ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(staticCanvas,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.save();transform();ctx.translate(RIVER_OFFSET,0);drawDynamicMap();ctx.restore();updateBuildingTargets()}
@@ -1124,9 +1160,9 @@ buildingTargets.id='buildingTargets';
 buildingTargets.className='cx-building-targets';
 canvas.insertAdjacentElement('afterend',buildingTargets);
 const targetEls=new Map();
-for(const [id,d] of Object.entries(defs)){
+for(const [id,d] of Object.entries(editableItems)){
  const el=document.createElement('button');el.type='button';el.className='cx-building-target';
- el.dataset.building=id;el.setAttribute('aria-label',d.name+' öffnen');
+ el.dataset.building=id;el.setAttribute('aria-label',(d.name||'Wohnblock')+' auswählen');
  buildingTargets.appendChild(el);targetEls.set(id,el);
 }
 let targetLayoutKey='';
@@ -1139,10 +1175,10 @@ function updateBuildingTargets(){
   const el=targetEls.get(id),p=mapPose(id);
   const x=vw/2+panX+(d.x+p.dx+RIVER_OFFSET-WORLD_W/2)*scale;
   const y=vh/2+panY+(d.y+p.dy-WORLD_H/2)*scale;
-  const w=d.w*scale,h=d.h*scale;
+  const w=d.w*p.size*scale,h=d.h*p.size*scale;
   const bw=Math.max(46,w+10),bh=Math.max(46,h+10);
-  el.style.left=(x+w/2-bw/2)+'px';
-  el.style.top=(y+h/2-bh/2)+'px';
+  el.style.left=(x+(d.w*scale-bw)/2)+'px';
+  el.style.top=(y+(d.h*scale-bh)/2)+'px';
   el.style.width=bw+'px';el.style.height=bh+'px';
   el.hidden=regionMode||(!editorMode&&!!editorBlocks[id]);
   el.style.outline=editorMode&&editorSelected===id?'2px solid #ffd481':touchDiagnostics?'1px solid #f1ca79':'';
@@ -1177,7 +1213,7 @@ inputRoot.addEventListener('pointerdown',e=>{
  if(regionMode||!isMapInput(e.target))return;
  try{e.target.setPointerCapture(e.pointerId)}catch{}
  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
- if(pointers.size===1)gesture={startX:e.clientX,startY:e.clientY,moved:false,pinch:false};
+ if(pointers.size===1)gesture={startX:e.clientX,startY:e.clientY,moved:false,pinch:false,editorDragId:editorMode?(e.target.closest?.('.cx-building-target')?.dataset.building||buildingAtScreen(e.clientX,e.clientY)):null};
  else if(pointers.size===2&&gesture){gesture.pinch=true;gesture.moved=true;gesture.distance=distance();gesture.initialZoom=zoom}
 });
 inputRoot.addEventListener('pointermove',e=>{
@@ -1190,7 +1226,14 @@ inputRoot.addEventListener('pointermove',e=>{
   setZoom(gesture.initialZoom*d/Math.max(1,gesture.distance),(pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top);
  }else if(pointers.size===1){
   if(Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)>12)gesture.moved=true;
-  if(gesture.moved){panX+=e.clientX-prev.x;panY+=e.clientY-prev.y;draw()}
+  if(gesture.moved){
+   if(editorMode&&gesture.editorDragId&&editableItems[gesture.editorDragId]){
+    const id=gesture.editorDragId,p=mapPose(id),scale=base*zoom;
+    p.dx=Math.max(-250,Math.min(250,p.dx+(e.clientX-prev.x)/scale));
+    p.dy=Math.max(-250,Math.min(250,p.dy+(e.clientY-prev.y)/scale));
+    mapLayout[id]=p;editorSelected=id;invalidateMapLayout();refreshMapEditor();
+   }else{panX+=e.clientX-prev.x;panY+=e.clientY-prev.y;draw()}
+  }
  }
 });
 function buildingAtScreen(clientX,clientY){
@@ -1202,10 +1245,11 @@ function buildingAtScreen(clientX,clientY){
   const p=mapPose(id);
   const x=vw/2+panX+(d.x+p.dx+RIVER_OFFSET-WORLD_W/2)*scale;
   const y=vh/2+panY+(d.y+p.dy-WORLD_H/2)*scale;
-  const w=d.w*scale,h=d.h*scale;
+  const w=d.w*p.size*scale,h=d.h*p.size*scale;
   const padX=Math.max(6,(46-w)/2),padY=Math.max(6,(46-h)/2);
-  if(px<x-padX||px>x+w+padX||py<y-padY||py>y+h+padY)continue;
-  const dx=Math.max(x-px,0,px-(x+w)),dy=Math.max(y-py,0,py-(y+h));
+  const centerX=x+d.w*scale/2,centerY=y+d.h*scale/2;
+  if(Math.abs(px-centerX)>w/2+padX||Math.abs(py-centerY)>h/2+padY)continue;
+  const dx=Math.max(Math.abs(px-centerX)-w/2,0),dy=Math.max(Math.abs(py-centerY)-h/2,0);
   const score=dx*dx+dy*dy;
   if(score<bestScore){best=id;bestScore=score}
  }
@@ -1215,6 +1259,7 @@ function finishMapPointer(e){
  if(!pointers.has(e.pointerId))return;
  const tapped=e.type==='pointerup'&&pointers.size===1&&gesture&&!gesture.pinch&&!gesture.moved
   &&Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)<15;
+ if(editorMode&&gesture?.moved&&gesture.editorDragId){persistMapLayout();refreshMapEditor()}
  pointers.delete(e.pointerId);
  lastPointerTap=Date.now();
  if(tapped&&!regionMode){
@@ -1247,6 +1292,13 @@ inputRoot.addEventListener('touchend',e=>{
 },{passive:true});
 inputRoot.addEventListener('touchcancel',()=>{nativeTouchStart=null},{passive:true});
 canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();setZoom(zoom*(e.deltaY<0?1.12:.89),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+
+$('editorToggle').onclick=()=>editorMode?stopMapEditor():startMapEditor();
+$('editorDone').onclick=stopMapEditor;
+$('editorSave').onclick=()=>{persistMapLayout();toast('Kartenanordnung gespeichert.')};
+$('editorResetAll').onclick=()=>{if(!confirm('Alle Gebäude-Positionen und Drehungen zurücksetzen?'))return;for(const id of Object.keys(mapLayout))delete mapLayout[id];persistMapLayout();invalidateMapLayout();refreshMapEditor();toast('Alle Gebäude zurückgesetzt.')};
+editorPanel.querySelectorAll('[data-map-edit]').forEach(b=>b.onclick=()=>adjustMapPose(b.dataset.mapEdit));
+refreshMapEditor();
 window.addEventListener('resize',resize);if('ResizeObserver' in window)new ResizeObserver(resize).observe(canvas);
 
 // REGIO RHENI: offline illustrated historical landscape; modern georeferencing is approximate.
@@ -1314,7 +1366,7 @@ for(const p of places){const q=geo(p.lat,p.lon),isC=p.id==='colonia';rx.save();r
 rx.restore();rx.fillStyle='#223127dd';rx.fillRect(12,rH-30,108,21);rx.fillStyle='#e6d6ac';rx.font='11px system-ui';rx.textAlign='left';rx.fillText('≈ 50 km Radius',19,rH-15);
 }
 function regionZoomBy(mult,x=rW/2,y=rH/2){const before=rPoint(x,y);rZoom=clamp(rZoom*mult,.65,5);const after=rPoint(x,y);rPanX+=(after.x-before.x)*rBase()*rZoom;rPanY+=(after.y-before.y)*rBase()*rZoom;drawRegion()}
-function setRegionMode(on){regionMode=on;if(typeof buildingTargets!=='undefined')buildingTargets.style.display=on?'none':'block';$('regionView').classList.toggle('active',on);$('regionInfo').classList.toggle('active',on);$('regionLegend').classList.toggle('active',on);$('regionSwitch').classList.toggle('active',on);$('regionSwitch').textContent=on?'⌂ ZUR STADT':'◈ REGION · 50 KM';$('mapHelp').textContent=on?'Fundorte / Handelswege antippen · 50 km Radius':'Schiffe fahren · Bürger bewegen sich · Gebäude antippen';if(on){resizeRegion();drawRegion()}else draw()}
+function setRegionMode(on){if(on&&editorMode)stopMapEditor();regionMode=on;if(typeof buildingTargets!=='undefined')buildingTargets.style.display=on?'none':'block';$('regionView').classList.toggle('active',on);$('regionInfo').classList.toggle('active',on);$('regionLegend').classList.toggle('active',on);$('regionSwitch').classList.toggle('active',on);$('regionSwitch').textContent=on?'⌂ ZUR STADT':'◈ REGION · 50 KM';$('mapHelp').textContent=on?'Fundorte / Handelswege antippen · 50 km Radius':'Schiffe fahren · Bürger bewegen sich · Gebäude antippen';if(on){resizeRegion();drawRegion()}else draw()}
 $('regionSwitch').onclick=()=>{closeSheet();setRegionMode(!regionMode)};
 function showPlace(p){opened='region-'+p.id;let isCity=p.id==='colonia';const tradeOk=Boolean(TRADE_ROUTES.find(r=>r.place===p.id));openSheet(`<span class="kicker">REGIO RHENI · CA. 150 N. CHR.</span><h2>${p.name}</h2><p>${p.description}</p><div class="notice">Historisch belegter Ort oder Fundplatz. Die Markerpositionen sind ungefähr, Wege und antiker Flusslauf bewusst schematisch. Keine metergenaue archäologische Karte.</div><div class="actions"><button type="button" id="regioBack">${isCity?'Stadt betreten':'Zur Regionskarte'}</button><button type="button" id="regioSource">Historische Quelle ↗</button>${tradeOk?'<button type="button" id="regioTrade">Handel mit diesem Ort ⚓</button>':''}</div>`);if(tradeOk)$('regioTrade').onclick=()=>showTrade(p.id);$('regioBack').onclick=()=>{closeSheet();if(isCity)setRegionMode(false)};$('regioSource').onclick=()=>window.open(p.source,'_blank','noopener')}
 rc.addEventListener('pointerdown',e=>{rc.setPointerCapture(e.pointerId);rTouch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(rTouch.size===1)rGesture={sx:e.clientX,sy:e.clientY,moved:false,lastDist:0};else if(rTouch.size===2){rGesture.moved=true;rGesture.lastDist=rTouchDistance()}});
