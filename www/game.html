@@ -440,47 +440,33 @@ function drawHarbor(d){const{x,y,w,h}=d;fillRect(x+12,y,w-14,h,'#b9a57f');roof(x
 function drawTemple(d){const{x,y,w,h}=d;fillRect(x+6,y+14,w-12,h-24,'#bba987');for(let s=0;s<4;s++)fillRect(x+10+s*5,y+74+s*2,w-20-s*10,3,'#ad9876');roof(x+10,y+13,w-19,26,11,4);fillRect(x+15,y+43,w-30,28,'#e2d5b5');for(let i=0;i<6;i++){fillRect(x+18+i*11,y+41,5,29,'#f0e4cc');fillRect(x+16+i*11,y+39,9,4,'#bca982')}fillRect(x+9,y+72,w-18,6,'#ad9876');polygon([[x+47,y+19],[x+55,y+30],[x+39,y+30]],'#cc8955')}
 
 function drawDistrictDetail(){
- // Kleine Höfe, Laubengänge, Straßenpflaster und Brunnen, ohne die anklickbaren Bauwerke zu verdecken.
- const occupied=Object.values(defs);
- for(let row=0;row<6;row++)for(let col=0;col<7;col++){
-   const x=279+col*115,y=176+row*116;
-   if(occupied.some(d=>x<d.x+d.w+10&&x+94>d.x-10&&y<d.y+d.h+10&&y+91>d.y-10))continue;
-   // Tonziegel-Reihen, kleine Innenhöfe, Schatten und Türen
-   for(let k=0;k<3;k++){
-     const bx=x+9+k*27,by=y+40+(k%2)*11;
-     fillRect(bx,by,14,12,'#d8c9ab');
-     line([[bx+2,by+3],[bx+12,by+3]],'#b48a62',1);
-     fillRect(bx+5,by+11,3,4,'#735a42');
-   }
-   if(random(row,col)>.44){fillRect(x+43,y+37,22,24,'#baad88');ellipse(x+53,y+48,7,6,'#7fa5a0');ellipse(x+53,y+48,3,2,'#c3dbcc')}
+ // Zusatzdekorationen dürfen NIEMALS über die Haus-Sprites gezeichnet werden.
+ // Diese Funktion zeichnet nur Felder AUSSERHALB des Stadtmauerrings.
+ for(let i=0;i<8;i++){
+  const y=36+i*113;
+  fillRect(1120,y,112,55,i%2?'#a5a476':'#b3ac77');
+  for(let k=0;k<7;k++)line([[1126+k*14,y+5],[1132+k*14,y+50]],'#8d9467',1);
  }
- // Unterbrochene Pflasterlinien, Querstraßen sowie einzelne Handelsstände
- for(let x=254;x<=1045;x+=115)for(let y=184;y<795;y+=35){line([[x+4,y],[x+14,y]],'#b7a486',.9)}
- for(let y=151;y<815;y+=116)for(let x=284;x<1030;x+=42)line([[x,y+3],[x+19,y+3]],'#b7a486',.85);
- for(let i=0;i<16;i++){const x=276+(i%8)*89,y=459+Math.floor(i/8)*11;fillRect(x,y,12,7,'#b58f63');polygon([[x-2,y],[x+14,y],[x+11,y-7],[x+1,y-7]],i%2?'#bd704c':'#ddba78');}
- // Landwirtschaftsflächen vor der Mauer, weitere Straßen am Flussufer
- for(let i=0;i<8;i++){const y=36+i*113;fillRect(1120,y,112,55,i%2?'#a5a476':'#b3ac77');for(let k=0;k<7;k++)line([[1126+k*14,y+5],[1132+k*14,y+50]],'#8d9467',1)}
 }
 function drawHarborDetail(){
- // Hafenobjekte bleiben einzeln und an festen Koordinaten: ein Kai, Kran,
- // Stege, Lagergut und Marktstände statt eines nicht anklickbaren Stadtfotos.
+ // Der einzige große Hafenkomplex wird über drawRomanBuilding('hafen') gezeichnet.
+ // Hier liegen ausschließlich separate Anlegestellen entlang der Rheinkante.
+ // Das Wasser endet in diesem Bereich ungefähr bei x=105 bis x=140.
  if(romanAtlas.harbor?.ready){
-  drawRomanAtlas('harbor',0,93,469,116,74);
-  drawRomanAtlas('harbor',1,132,394,45,51);
-  drawRomanAtlas('harbor',2,111,583,59,42);
-  drawRomanAtlas('harbor',1,127,650,45,51);
-  drawRomanAtlas('harbor',4,185,502,35,31);
-  drawRomanAtlas('harbor',6,217,490,35,33);
-  drawRomanAtlas('harbor',6,218,611,34,32);
+  // Stege über dem Wasser, keine zusätzlichen Lagerhaus-Kopien.
+  drawRomanAtlas('harbor',2,55,392,82,48);
+  drawRomanAtlas('harbor',2,53,624,82,48);
+  // Kran und Ware auf der Hafenseite, nicht mitten auf dem Wasser.
+  drawRomanAtlas('harbor',1,127,345,51,52);
+  drawRomanAtlas('harbor',4,148,446,32,29);
+  drawRomanAtlas('harbor',6,166,599,39,32);
   return;
  }
- for(let k=0;k<5;k++){const y=186+k*129;
-  fillRect(119,y+18,14,11,'#84694b');
-  for(let b=0;b<3;b++)fillRect(144+b*12,y+15,10,9,b%2?'#a18b66':'#8c7450');
-  line([[175,y+24],[175,y-19],[195,y-19]],'#5b4b33',3);
-  line([[195,y-19],[195,y+9]],'#bda57d',1.8);
+ // Schlichtes Steg-Fallback, wenn die Atlasgrafik nicht verfügbar ist.
+ for(const y of [402,635]){
+  fillRect(66,y,78,9,'#8e7051');
+  for(let x=72;x<145;x+=23)fillRect(x,y+8,4,15,'#67513b');
  }
- line([[154,125],[154,825]],'#baa486',5);
 }
 function drawGoodsCaravan(){
  // Warenkarren folgen der Verbindung vom Kai zum Speicher, solange Ladung wartet.
@@ -669,11 +655,17 @@ function drawRomanAtlas(name,index,x,y,w,h){
 // storehouses 11-12, temple 13, north gate 14 and fountain 15.
 const romanBuildingCell={herberge:5,werkstatt:7,lager:12,tempel:13,tor:14,insula:3,wasser:15};
 function drawRomanBuilding(id,d){
- // Der Rheinhafen erhält eine eigene Kai-/Lagerhausgrafik aus dem Hafenatlas.
- if(id==='hafen'&&drawRomanAtlas('harbor',0,d.x-14,d.y-15,d.w+28,d.h+27))return true;
+ // Ein Hafengebäude statt zwei. Die Backsteinfront blickt zur Kaikante;
+ // die Gebäudebasis sitzt innerhalb der anklickbaren Grundfläche.
+ if(id==='hafen'){
+  const width=d.w*1.16,height=width*132/170;
+  return drawRomanAtlas('harbor',0,d.x+(d.w-width)/2,d.y+d.h+4-height,width,height);
+ }
  const cell=romanBuildingCell[id];if(cell===undefined)return false;
- const w=d.w*(id==='tor'?1.16:1.16),h=w*.92;
- return drawRomanAtlas('buildings',cell,d.x+(d.w-w)/2,d.y+d.h+8-h,w,h);
+ const width=d.w*(id==='tor'?1.13:1.08);
+ const height=width*124/136;
+ const bottom=d.y+d.h+(id==='tor'?3:4);
+ return drawRomanAtlas('buildings',cell,d.x+(d.w-width)/2,bottom-height,width,height);
 }
 function drawBuildingSprite(id,d){
  const entry=buildingSprites[id];if(!entry?.ready)return false;
@@ -729,39 +721,41 @@ function cityHouse(x,y,w,h,kind=0){
  ctx.restore();
 }
 function cityCourtyard(x,y,seed){
- fillRect(x,y,98,91,'#b3a588');
- ctx.strokeStyle='rgba(111,91,65,.26)';ctx.lineWidth=1;ctx.strokeRect(x+1,y+1,96,89);
- // Kieshof und Gartenstreifen mit zwei Bäumen/Brunnen
- fillRect(x+11,y+12,76,66,'#cbb99b');
- const type=Math.floor(random(seed,12)*4);
- if(type===0){
-  ellipse(x+49,y+46,18,13,'#a49679');ellipse(x+49,y+44,13,9,'#709a96');ellipse(x+49,y+44,8,5,'#83b7b8');
- }else{
-  for(let n=0;n<3;n++){const bx=x+30+n*17;ellipse(bx,y+45,8,5,'#86946e')}
+ // Nur subtiler Erdboden unter dem neuen Bild. Keine alten Dächer, Pool-Kreise
+ // oder hellen, rechteckigen Platzhalter mehr.
+ ctx.save();
+ ctx.fillStyle='#b5a987';
+ ctx.fillRect(x,y,98,91);
+ ctx.fillStyle='rgba(99,100,69,.12)';
+ for(let i=0;i<12;i++){
+  const px=x+5+random(seed+i,811)*87,py=y+5+random(seed+i,933)*81;
+  ctx.fillRect(px,py,2,1.3);
  }
- for(let n=0;n<24;n++){
-  const px=x+11+random(seed+n,811)*76,py=y+11+random(seed+n,933)*69;
-  fillRect(px,py,1.5,1.1,n%2?'#d4c5a8':'#aa9878');
- }
+ ctx.restore();
 }
 function drawNewCityBlock(x,y,row,col){
  const seed=col+row*17,style=Math.floor(random(seed,51)*5);
  cityCourtyard(x-5,y-5,seed);
- const houseType=[0,1,2,3,4][style];
- // Ein zusammenhängender Gebäudesprite pro Block, damit kein Dach die Straße
- // verdeckt. Der Fußpunkt entspricht der bestehenden Blockgrenze.
- const w=style===4?86:style===3?83:77;
- const h=w*.91;
- if(drawRomanAtlas('buildings',houseType,x+47-w/2,y+84-h,w,h))return;
- // Fallback für offline/alte Darstellung.
+ const houseType=style;
+ const available=romanAtlas.buildings?.ready;
+ if(available){
+  // Bildausschnitt ist für alle Varianten 136x124. Bodenanker y+85,
+  // zentriert im Grundstück mit 8 Karten-Einheiten Rand zur Straße.
+  const width=style===3?86:style===4?81:79;
+  const height=width*124/136;
+  drawRomanAtlas('buildings',houseType,x+47-width/2,y+85-height,width,height);
+  return;
+ }
+ // Grafischer Rückfall nur wenn der Atlas nicht geladen werden kann.
  if(style===3){
   cityHouse(x+4,y+6,78,35,seed);cityHouse(x+3,y+51,39,29,seed+2);tree(x+69,y+64,9);
  }else if(style===2){
-  cityHouse(x+4,y+3,39,37,seed);cityHouse(x+50,y+3,36,37,seed+2);cityHouse(x+13,y+53,65,27,seed+3);
+  cityHouse(x+4,y+3,39,37,seed);cityHouse(x+50,y+3,36,37,seed+2);
+  cityHouse(x+13,y+53,65,27,seed+3);
  }else{
   cityHouse(x+4,y+6,42,32,seed);cityHouse(x+51,y+5,34,34,seed+1);
   cityHouse(x+5,y+51,37,31,seed+3);
-  if(style===0)cityHouse(x+52,y+52,31,29,seed+4);else tree(x+69,y+67,8);
+  if(style===0)cityHouse(x+52,y+52,31,29,seed+4);
  }
 }
 function drawCityPavement(x,y,w,h,vertical=false){
@@ -794,8 +788,11 @@ if(!groundLayer)buildGround();
 ctx.drawImage(groundLayer,EXT.x0,EXT.y0,EXT.x1-EXT.x0,EXT.y1-EXT.y0);
 drawRiverBase();
 drawLandscape();
-for(let j=0;j<5;j++){const y=178+j*130;fillRect(97,y,125,12,'#786044');fillRect(96,y+12,9,12,'#544333');for(let k=0;k<4;k++)fillRect(114+k*25,y+2,7,8,'#967a55')}
-for(let i=0;i<7;i++){let y=124+i*102;fillRect(112,y+18,35,12,'#80684a');fillRect(131,y+12,11,22,'#a68a65');ellipse(146,y+38,4,4,'#66503a')}
+// Alte Rechteck-Stege entfernt: die Hafengrafik zeichnet die Anleger selbst.
+// Durchgehende Uferbefestigung, ohne braune Balken über Wasser und Land.
+fillRect(130,126,9,696,'#8c785a');
+fillRect(137,126,4,696,'#c3af89');
+for(let y=145;y<815;y+=18)line([[132,y],[139,y+1]],'rgba(72,59,42,.28)',.8);
 fillRect(230,124,842,701,'#a7a27c');fillRect(243,137,816,674,'#b1a985');
 ctx.strokeStyle='#88836b';ctx.lineWidth=21;ctx.strokeRect(230,124,842,701);ctx.strokeStyle='#ded0ae';ctx.lineWidth=5;ctx.strokeRect(230,124,842,701);
 const towers=[[230,124],[651,124],[1072,124],[230,474],[1072,474],[230,825],[651,825],[1072,825]];for(const [tx,ty] of towers){fillRect(tx-14,ty-14,28,28,'#7f775d');fillRect(tx-10,ty-10,20,20,'#b8ab8b')}
