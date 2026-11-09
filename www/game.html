@@ -635,6 +635,99 @@ function drawBuildingSprite(id,d){
  ctx.drawImage(img.img,x+(w-width)/2,bottom-height,width,height);
  return true;
 }
+// Grafikpass 02: neue, wiederverwendbare Stadtblockgrafiken.
+// Kleine Häuser bleiben prozedural gezeichnet, statt ein riesiges, nicht
+// bearbeitbares Hintergrundbild zu verwenden. Das ist offlinefreundlich und
+// erhält die Hitboxen aller interaktiven Gebäude unverändert.
+const HOUSE_ROOFS=['#aa5734','#b9633b','#a84e31','#bf7041','#a95b3a','#c27746'];
+function cityHouse(x,y,w,h,kind=0){
+ const r=HOUSE_ROOFS[kind%HOUSE_ROOFS.length],wall=h*.27,dx=Math.min(9,w*.15),dy=Math.min(9,h*.18),pitch=Math.min(10,h*.23);
+ ctx.save();
+ // Weicher Bodenschatten und Steinplinthe
+ ctx.fillStyle='rgba(37,35,24,.20)';
+ ctx.beginPath();ctx.ellipse(x+w*.55+5,y+h-3,w*.61,h*.23,-.10,0,Math.PI*2);ctx.fill();
+ polygon([[x+1,y+dy+wall],[x+w+dx,y+dy+wall],[x+w+dx,y+h],[x+1,y+h]],'#a69b7e');
+ polygon([[x+2,y+dy],[x+w-1,y+dy],[x+w-1,y+dy+wall],[x+2,y+dy+wall]],'#d8c5a6','#8c8068');
+ polygon([[x+w-1,y+dy],[x+w+dx,y+dy+dy],[x+w+dx,y+dy+dy+wall],[x+w-1,y+dy+wall]],'#a9957b','#75674e');
+ // Fassadenputz, Steinquader, Haupteingang
+ ctx.strokeStyle='rgba(104,85,66,.21)';ctx.lineWidth=.85;
+ for(let i=1;i<4;i++){const xx=x+2+i*w/4;ctx.beginPath();ctx.moveTo(xx,y+dy+4);ctx.lineTo(xx,y+dy+wall-1);ctx.stroke()}
+ const doorX=x+Math.round(w*.5)-3;
+ fillRect(doorX,y+dy+wall-10,7,10,'#674530');
+ ctx.fillStyle='#3d352b';ctx.beginPath();ctx.arc(doorX+3.5,y+dy+wall-10,3.5,Math.PI,0);ctx.fill();
+ // Fenster, Balken und Schattierung
+ for(let i=0;i<Math.max(1,Math.floor(w/18));i++){
+  const wx=x+9+i*18;
+  if(Math.abs(wx-doorX)<10)continue;
+  fillRect(wx,y+dy+wall-12,5,6,'#5a4639');fillRect(wx+1,y+dy+wall-11,3,4,'#333a36');
+  line([[wx-1,y+dy+wall-5],[wx+6,y+dy+wall-5]],'#e9d6b3',1);
+ }
+ // Doppelte Ziegeldachflächen: feste Perspektive wie Forum/Thermen
+ polygon([[x-3,y+dy+2],[x+w-1,y+dy+2],[x+w+dx,y+dy+dy+3],[x+dx-3,y+dy+dy+3]],'#845038','#70442c');
+ polygon([[x-3,y+dy+2],[x+w-1,y+dy+2],[x+w+dx-pitch,y+3],[x+dx-pitch-3,y+3]],'#c27b4a','#81472c');
+ polygon([[x+dx-pitch-3,y+3],[x+w+dx-pitch,y+3],[x+w+dx,y+dy+dy+3],[x+dx-3,y+dy+dy+3]],r,'#79452e');
+ for(let j=1;j<5;j++){
+  const t=j/5,rx=x+dx-pitch-3+t*(w+1),ry=y+4+t*.1;
+  line([[rx,ry],[rx+dx+pitch*.32,ry+dy*1.6]],'#d88e5b',.65);
+ }
+ for(let row=1;row<4;row++){
+  const yy=y+3+row*(dy+3)/4;
+  line([[x+dx-pitch,yy],[x+w+dx-pitch,yy]],'rgba(93,52,35,.44)',.62)
+ }
+ if(kind%4===1){fillRect(x+w*.66,y+2,5,7,'#9e8d72');fillRect(x+w*.65,y-1,7,3,'#c6b49c')}
+ ctx.restore();
+}
+function cityCourtyard(x,y,seed){
+ fillRect(x,y,98,91,'#b3a588');
+ ctx.strokeStyle='rgba(111,91,65,.26)';ctx.lineWidth=1;ctx.strokeRect(x+1,y+1,96,89);
+ // Kieshof und Gartenstreifen mit zwei Bäumen/Brunnen
+ fillRect(x+11,y+12,76,66,'#cbb99b');
+ const type=Math.floor(random(seed,12)*4);
+ if(type===0){
+  ellipse(x+49,y+46,18,13,'#a49679');ellipse(x+49,y+44,13,9,'#709a96');ellipse(x+49,y+44,8,5,'#83b7b8');
+ }else{
+  for(let n=0;n<3;n++){const bx=x+30+n*17;ellipse(bx,y+45,8,5,'#86946e')}
+ }
+ for(let n=0;n<24;n++){
+  const px=x+11+random(seed+n,811)*76,py=y+11+random(seed+n,933)*69;
+  fillRect(px,py,1.5,1.1,n%2?'#d4c5a8':'#aa9878');
+ }
+}
+function drawNewCityBlock(x,y,row,col){
+ const seed=col+row*17,style=Math.floor(random(seed,51)*4);
+ cityCourtyard(x-5,y-5,seed);
+ if(style===3){
+  cityHouse(x+4,y+6,78,35,seed);
+  cityHouse(x+3,y+51,39,29,seed+2);
+  tree(x+69,y+64,9);
+ }else if(style===2){
+  cityHouse(x+4,y+3,39,37,seed);
+  cityHouse(x+50,y+3,36,37,seed+2);
+  cityHouse(x+13,y+53,65,27,seed+3);
+ }else{
+  cityHouse(x+4,y+6,42,32,seed);
+  cityHouse(x+51,y+5,34,34,seed+1);
+  cityHouse(x+5,y+51,37,31,seed+3);
+  if(style===0)cityHouse(x+52,y+52,31,29,seed+4);
+  else tree(x+69,y+67,8);
+ }
+}
+function drawCityPavement(x,y,w,h,vertical=false){
+ fillRect(x,y,w,h,'#b9ab8e');
+ // Unregelmäßige kleine Kalksteinplatten; die statische Ebene wird gecacht.
+ const stepX=vertical?8:10,stepY=vertical?10:8;
+ for(let row=0,py=y;py<y+h;row++,py+=stepY){
+  const offset=(row%2)*stepX*.5;
+  for(let px=x-offset;px<x+w;px+=stepX){
+   const xx=Math.max(x,px),ww=Math.min(px+stepX-1,x+w)-xx,hh=Math.min(stepY-1,y+h-py);
+   if(ww<=0||hh<=0)continue;
+   const shade=random(px*.1,py*.13);
+   fillRect(xx,py,ww,hh,shade>.75?'#d6c6a5':shade>.35?'#c8b899':'#b6a58a');
+   if(shade>.83){line([[xx+1,py+hh*.6],[xx+ww*.6,py+1]],'rgba(112,96,70,.2)',.55)}
+  }
+ }
+ ctx.strokeStyle='#9b8e75';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,w-1,h-1);
+}
 function drawStaticMap(){
 if(!groundLayer)buildGround();
 ctx.drawImage(groundLayer,EXT.x0,EXT.y0,EXT.x1-EXT.x0,EXT.y1-EXT.y0);
@@ -646,10 +739,10 @@ fillRect(230,124,842,701,'#a7a27c');fillRect(243,137,816,674,'#b1a985');
 ctx.strokeStyle='#88836b';ctx.lineWidth=21;ctx.strokeRect(230,124,842,701);ctx.strokeStyle='#ded0ae';ctx.lineWidth=5;ctx.strokeRect(230,124,842,701);
 const towers=[[230,124],[651,124],[1072,124],[230,474],[1072,474],[230,825],[651,825],[1072,825]];for(const [tx,ty] of towers){fillRect(tx-14,ty-14,28,28,'#7f775d');fillRect(tx-10,ty-10,20,20,'#b8ab8b')}
 fillRect(515,383,172,129,'#d9c7a5');fillRect(698,368,52,44,'#dbcaa8');fillRect(332,368,64,44,'#d8c5a1');fillRect(820,616,54,38,'#d8c5a3');
-for(let x=254;x<1060;x+=115){fillRect(x,139,18,673,'#d6c3a0');line([[x+9,139],[x+9,811]],'#bba985',1)}
-for(let y=151;y<815;y+=116){fillRect(244,y,815,18,'#d6c3a0');line([[244,y+9],[1059,y+9]],'#bba985',1)}
+for(let x=254;x<1060;x+=115)drawCityPavement(x,139,18,673,true)
+for(let y=151;y<815;y+=116)drawCityPavement(244,y,815,18,false)
 fillRect(1058,460,65,22,'#d6c3a0');fillRect(615,112,22,45,'#d6c3a0');fillRect(615,800,22,52,'#d6c3a0');
-const specials=Object.values(defs);for(let row=0;row<6;row++){for(let col=0;col<7;col++){let x=279+col*115,y=176+row*116;let intersect=specials.some(d=>x<d.x+d.w+10 && x+94>d.x-10 && y<d.y+d.h+10 && y+91>d.y-10);if(intersect)continue;fillRect(x-5,y-5,98,91,'#c2b38f');let rr=random(col,row);if(rr>.81){for(let i=0;i<4;i++)tree(x+15+i*18,y+15+random(i,col)*55,8);roof(x+12,y+54,53,20,8,(col+row)%6);continue}roof(x+4,y+4,40,29,10,(col+row)%6);roof(x+52,y+5,34,30,8,(col+row+2)%6);roof(x+6,y+48,37,29,10,(col+row+4)%6);if(rr>.33)roof(x+53,y+48,32,29,8,(col+row+5)%6);else tree(x+69,y+65,12);}}
+const specials=Object.values(defs);for(let row=0;row<6;row++){for(let col=0;col<7;col++){let x=279+col*115,y=176+row*116;let intersect=specials.some(d=>x<d.x+d.w+10 && x+94>d.x-10 && y<d.y+d.h+10 && y+91>d.y-10);if(intersect)continue;drawNewCityBlock(x,y,row,col);}}
 drawDistrictDetail();drawHarborDetail();
 for(let i=0;i<95;i++){const x=168+random(i,3)*965,y=30+random(i,8)*869;if(x>214&&x<1090&&y>104&&y<849)continue;tree(x,y,6+random(i,43)*9)}
 for(const [id,d] of Object.entries(defs)){if(drawBuildingSprite(id,d))continue;if(id==='amphitheater')drawArena(d);if(id==='thermen')drawThermes(d);if(id==='forum')drawForum(d);if(id==='hafen')drawHarbor(d);if(id==='tempel')drawTemple(d);if(id==='lager')drawWarehouse(d);if(id==='werkstatt')drawWorkshop(d);if(id==='tor')drawGate(d);if(id==='insula')drawHousing(d);if(id==='wasser')drawWater(d);if(id==='herberge')drawHousing(d)}
