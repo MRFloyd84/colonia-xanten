@@ -18,6 +18,10 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Cache Gradle dependencies
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
       - run: npm install --no-audit --no-fund
       - run: npx cap add android
       - run: npx cap sync android
