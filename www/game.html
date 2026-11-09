@@ -715,7 +715,11 @@ for(const [id,d] of Object.entries(defs)){
  el.dataset.building=id;el.setAttribute('aria-label',d.name+' öffnen');
  buildingTargets.appendChild(el);targetEls.set(id,el);
 }
+let targetLayoutKey='';
 function updateBuildingTargets(){
+ const key=[vw,vh,panX.toFixed(2),panY.toFixed(2),zoom.toFixed(4),regionMode].join('|');
+ if(key===targetLayoutKey)return;
+ targetLayoutKey=key;
  const scale=base*zoom;
  for(const [id,d] of Object.entries(defs)){
   const el=targetEls.get(id);
