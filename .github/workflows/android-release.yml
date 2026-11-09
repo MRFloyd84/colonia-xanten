@@ -1,0 +1,59 @@
+name: Android Release-APK
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: npm install --no-audit --no-fund
+      - run: npx cap add android
+      - run: npx cap sync android
+      - name: Setze Versionsnummer
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+          BUILD_CODE: ${{ github.run_number }}
+        run: python3 scripts/set_android_version.py
+      - name: Signaturschlüssel aus Repository-Secrets bereitstellen
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$SIGNING_KEYSTORE_BASE64" || (echo 'Keystore fehlt' >&2; exit 1)
+          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/colonia-release.jks"
+      - name: Signierte Release APK erstellen
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          KEYSTORE_PATH: ${{ runner.temp }}/colonia-release.jks
+        run: |
+          python3 scripts/configure_signing.py
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+      - name: Signaturdatei entfernen
+        if: always()
+        run: rm -f "$RUNNER_TEMP/colonia-release.jks"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: COLONIA-XANTEN-Release-APK
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+      - name: GitHub Release mit APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" android/app/build/outputs/apk/release/*.apk --title "COLONIA XANTEN $GITHUB_REF_NAME" --generate-notes
