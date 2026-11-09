@@ -607,6 +607,34 @@ function drawLandscape(){
  ctx.font='italic 17px Georgia';ctx.fillText('Gräberstraße',700,-250);ctx.fillText('Gräberstraße',700,1200);ctx.fillText('Gutshof · villa rustica',1480,-205);
  ctx.restore();
 }
+// Austauschbare Bild-Assets. Beim Veröffentlichen in web/game-<version>.html
+// ersetzt publish_update.py diese Platzhalter durch offlinefähige WebP-Data-URLs.
+// Die bisherigen Canvas-Gebäude bleiben verfügbar, solange ein Sprite fehlt.
+const buildingSpriteSources={
+ forum:'__CX_SPRITE_FORUM__',
+ thermen:'__CX_SPRITE_THERMEN__',
+ amphitheater:'__CX_SPRITE_AMPHITHEATER__'
+};
+const buildingSprites={};
+for(const [id,source] of Object.entries(buildingSpriteSources)){
+ const img=new Image();
+ buildingSprites[id]={img,ready:false};
+ img.onload=()=>{buildingSprites[id].ready=true;staticKey='';draw()};
+ img.onerror=()=>{buildingSprites[id].ready=false};
+ // Keine Anfrage für Platzhalter im lokalen Quellcode.
+ if(source.startsWith('data:image/webp;base64,'))img.src=source;
+}
+function drawBuildingSprite(id,d){
+ const entry=buildingSprites[id];if(!entry?.ready)return false;
+ const {x,y,w,h}=d,img=entry;
+ // Die Basis des Bildes liegt im bestehenden Gebäudegrundriss. Die Dächer
+ // dürfen darüber hinausragen, die anklickbare Fläche bleibt unverändert.
+ const width=w*1.18;
+ const height=width*(img.img.naturalHeight/img.img.naturalWidth);
+ const bottom=y+h+11;
+ ctx.drawImage(img.img,x+(w-width)/2,bottom-height,width,height);
+ return true;
+}
 function drawStaticMap(){
 if(!groundLayer)buildGround();
 ctx.drawImage(groundLayer,EXT.x0,EXT.y0,EXT.x1-EXT.x0,EXT.y1-EXT.y0);
@@ -624,7 +652,7 @@ fillRect(1058,460,65,22,'#d6c3a0');fillRect(615,112,22,45,'#d6c3a0');fillRect(61
 const specials=Object.values(defs);for(let row=0;row<6;row++){for(let col=0;col<7;col++){let x=279+col*115,y=176+row*116;let intersect=specials.some(d=>x<d.x+d.w+10 && x+94>d.x-10 && y<d.y+d.h+10 && y+91>d.y-10);if(intersect)continue;fillRect(x-5,y-5,98,91,'#c2b38f');let rr=random(col,row);if(rr>.81){for(let i=0;i<4;i++)tree(x+15+i*18,y+15+random(i,col)*55,8);roof(x+12,y+54,53,20,8,(col+row)%6);continue}roof(x+4,y+4,40,29,10,(col+row)%6);roof(x+52,y+5,34,30,8,(col+row+2)%6);roof(x+6,y+48,37,29,10,(col+row+4)%6);if(rr>.33)roof(x+53,y+48,32,29,8,(col+row+5)%6);else tree(x+69,y+65,12);}}
 drawDistrictDetail();drawHarborDetail();
 for(let i=0;i<95;i++){const x=168+random(i,3)*965,y=30+random(i,8)*869;if(x>214&&x<1090&&y>104&&y<849)continue;tree(x,y,6+random(i,43)*9)}
-for(const [id,d] of Object.entries(defs)){if(id==='amphitheater')drawArena(d);if(id==='thermen')drawThermes(d);if(id==='forum')drawForum(d);if(id==='hafen')drawHarbor(d);if(id==='tempel')drawTemple(d);if(id==='lager')drawWarehouse(d);if(id==='werkstatt')drawWorkshop(d);if(id==='tor')drawGate(d);if(id==='insula')drawHousing(d);if(id==='wasser')drawWater(d);if(id==='herberge')drawHousing(d)}
+for(const [id,d] of Object.entries(defs)){if(drawBuildingSprite(id,d))continue;if(id==='amphitheater')drawArena(d);if(id==='thermen')drawThermes(d);if(id==='forum')drawForum(d);if(id==='hafen')drawHarbor(d);if(id==='tempel')drawTemple(d);if(id==='lager')drawWarehouse(d);if(id==='werkstatt')drawWorkshop(d);if(id==='tor')drawGate(d);if(id==='insula')drawHousing(d);if(id==='wasser')drawWater(d);if(id==='herberge')drawHousing(d)}
 for(const [id,d] of Object.entries(defs)){ctx.save();ctx.setLineDash([5,4]);ctx.lineWidth=2;ctx.strokeStyle='rgba(255,237,180,.9)';ctx.strokeRect(d.x-6,d.y-7,d.w+12,d.h+14);ctx.restore();let short={thermen:'THERMEN',amphitheater:'ARENA',forum:'FORUM',hafen:'HAFEN',tempel:'TEMPEL',lager:'SPEICHER',werkstatt:'HANDWERK',tor:'NORDTOR',insula:'WOHNEN',wasser:'WASSER',herberge:'HERBERGE'}[id];label(short,d.x+d.w/2,d.y+d.h+36)}
 drawSeasonOverlay();
 ctx.font='italic 23px Georgia';ctx.textAlign='center';ctx.fillStyle='#e0eee5';for(const ly of [389,-420,1290]){ctx.save();ctx.translate(-110,ly);ctx.rotate(-Math.PI/2);ctx.fillText('RHENVS · RHEIN',0,0);ctx.restore()}
