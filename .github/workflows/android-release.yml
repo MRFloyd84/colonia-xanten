@@ -1,15 +1,20 @@
 name: Android Release-APK
+# Nur getaggte Releases: garantiert eine gültige App-Versionsnummer.
 on:
-  workflow_dispatch:
   push:
     tags: ['v*']
 permissions:
   contents: write
+concurrency:
+  group: update-channel
+  cancel-in-progress: false
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -17,7 +22,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-
+      - name: Spielversion für Release setzen
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+        run: python3 scripts/stamp_web_version.py "$APP_VERSION"
       - run: npm install --no-audit --no-fund
       - run: npx cap add android
       - run: npx cap sync android
@@ -25,18 +33,18 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
-      - name: Setze Versionsnummer
+      - name: Android-Versionsnummer festlegen
         env:
           APP_VERSION: ${{ github.ref_name }}
           BUILD_CODE: ${{ github.run_number }}
         run: python3 scripts/set_android_version.py
-      - name: Signaturschlüssel aus Repository-Secrets bereitstellen
+      - name: Signaturschlüssel bereitstellen
         env:
           SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
         run: |
-          test -n "$SIGNING_KEYSTORE_BASE64" || (echo 'Keystore fehlt' >&2; exit 1)
+          test -n "$SIGNING_KEYSTORE_BASE64" || { echo "::error::SIGNING_KEYSTORE_BASE64 fehlt"; exit 1; }
           printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/colonia-release.jks"
-      - name: Signierte Release APK erstellen
+      - name: Release-APK signieren
         env:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
@@ -47,7 +55,7 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
-      - name: Signaturdatei entfernen
+      - name: Temporären Signaturschlüssel entfernen
         if: always()
         run: rm -f "$RUNNER_TEMP/colonia-release.jks"
       - uses: actions/upload-artifact@v4
@@ -55,9 +63,33 @@ jobs:
           name: COLONIA-XANTEN-Release-APK
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
-      - name: GitHub Release mit APK
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Öffentliches GitHub Release mit APK erstellen
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" android/app/build/outputs/apk/release/*.apk --title "COLONIA XANTEN $GITHUB_REF_NAME" --generate-notes
+          VERSION="${GITHUB_REF_NAME#v}"
+          APK="$RUNNER_TEMP/COLONIA-XANTEN-$VERSION.apk"
+          cp "$(ls android/app/build/outputs/apk/release/*.apk | head -n1)" "$APK"
+          gh release create "$GITHUB_REF_NAME" "$APK" --title "COLONIA XANTEN $VERSION" --generate-notes
+      - name: Updatekanal aus main laden
+        run: |
+          git fetch origin main
+          git worktree add "$RUNNER_TEMP/channel" origin/main
+      - name: APK und Spiel im Updatekanal veröffentlichen
+        env:
+          VERSION_TAG: ${{ github.ref_name }}
+          BUILD_CODE: ${{ github.run_number }}
+        run: |
+          VERSION="${VERSION_TAG#v}"
+          python3 scripts/publish_update.py --channel "$RUNNER_TEMP/channel" \
+            --repo "$GITHUB_REPOSITORY" --version "$VERSION" \
+            --game www/game.html \
+            --apk-version "$VERSION" --apk-code "$BUILD_CODE" \
+            --apk-url "https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION/COLONIA-XANTEN-$VERSION.apk" \
+            --notes "Neue App-Version $VERSION"
+          cd "$RUNNER_TEMP/channel"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- update.json web/
+          git commit -m "Publish Android app v$VERSION [skip ci]"
+          git push origin HEAD:main

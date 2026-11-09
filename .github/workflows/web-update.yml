@@ -1,0 +1,66 @@
+name: Spiel-Update veröffentlichen
+# Das Spiel bleibt in www/game.html; veröffentlichte Versionen liegen in web/ und update.json.
+on:
+  push:
+    tags: ['web-v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Spielversion, z. B. 1.0.2 (höher als die letzte)'
+        required: true
+      notes:
+        description: 'Kurze Notiz für das Update (optional)'
+        required: false
+permissions:
+  contents: write
+concurrency:
+  group: update-channel
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Version bestimmen
+        id: v
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          V="${INPUT_VERSION:-$REF_NAME}"
+          V="${V#web-v}"; V="${V#v}"
+          [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Ungültige Version: $V" >&2; exit 1; }
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+      - name: Spielversion setzen
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: python3 scripts/stamp_web_version.py "$VERSION"
+      - name: Aktuellen öffentlichen Kanal aus main holen
+        run: |
+          git fetch origin main
+          git worktree add "$RUNNER_TEMP/channel" origin/main
+      - name: Update-Dateien erzeugen
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          python3 scripts/publish_update.py --channel "$RUNNER_TEMP/channel" \
+            --repo "$GITHUB_REPOSITORY" --version "$VERSION" \
+            --game www/game.html --notes "$NOTES"
+      - name: Update veröffentlichen
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          cd "$RUNNER_TEMP/channel"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- update.json web/
+          if git diff --cached --quiet; then
+            echo "Keine Änderungen."
+            exit 0
+          fi
+          git commit -m "Publish web update v$VERSION [skip ci]"
+          git push origin HEAD:main
+          echo "Spiel-Update v$VERSION veröffentlicht" >> "$GITHUB_STEP_SUMMARY"
