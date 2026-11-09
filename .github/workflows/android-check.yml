@@ -17,6 +17,8 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Verify Stadt 2.0 JavaScript and compatibility hooks
+        run: node tests/city2-smoke.mjs
       - run: npm install --no-audit --no-fund
       - run: npx cap add android
       - run: npx cap sync android
