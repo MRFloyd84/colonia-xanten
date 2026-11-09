@@ -8,7 +8,7 @@
   <meta name="cx-min-shell" content="1">
   <meta name="description" content="COLONIA XANTEN: eine interaktive historische Stadtkarte mit Gebäudesimulation.">
   <style>
-:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eee8d9;background:#171c19;font-synthesis:none}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overscroll-behavior:none}button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible{outline:2px solid #efd29a;outline-offset:3px}.app{height:100dvh;min-height:480px;display:flex;flex-direction:column;overflow:hidden;background:#171c19}.topbar{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 12px) 17px 12px;background:#1c231f;border-bottom:1px solid #444d40;z-index:2;flex:none}.brand .eyebrow{display:block;color:#baaa85;font-size:9px;letter-spacing:2.5px;font-weight:700}.brand h1{font-family:Georgia,serif;font-size:23px;letter-spacing:1.2px;margin:4px 0 2px;line-height:1;color:#f5e9d0}.brand em{font-weight:normal;color:#cfab6c;font-style:normal}.era{font-size:9px;letter-spacing:1.2px;color:#a0a79b}.clock{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:64px;color:#e6d6b6}.clock b{font-size:18px;font-variant-numeric:tabular-nums}.clock small{font-size:9px;letter-spacing:1px;color:#a2a797}.sun{color:#eac47d;font-size:14px}.viewport{flex:1;min-height:0;position:relative;overflow:hidden;background:#859375;touch-action:none}canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}canvas:active{cursor:grabbing}.map-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(17,27,22,.24),transparent 27%,transparent 72%,rgba(20,29,22,.15))}.map-title{pointer-events:none;position:absolute;left:18px;top:16px;display:flex;flex-direction:column;color:#f7e8c3;text-shadow:0 2px 8px #273523;letter-spacing:2px;font-family:Georgia,serif;font-size:13px}.map-title strong{font-size:23px;letter-spacing:3px}.map-title-line{display:block;width:33px;border-top:2px solid #d9bd83;margin-bottom:7px}.map-controls{position:absolute;right:12px;top:18px;display:flex;flex-direction:column;gap:5px}.map-controls button,.play{width:37px;height:37px;border:1px solid #d5c49e83;background:#202820db;color:#f1e3c5;border-radius:8px;font-size:23px;box-shadow:0 4px 9px #0002}.map-controls button:active,.play:active{background:#58654b}.map-help{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:#f5e9d2;background:#1c271ddc;border-radius:20px;padding:8px 12px;max-width:96%;text-align:center;pointer-events:none}.map-compass{position:absolute;bottom:57px;right:16px;display:flex;flex-direction:column;align-items:center;color:#f5e7c4;text-shadow:0 1px 5px #171c19}.map-compass span{font-size:10px;font-weight:bold}.map-compass b{font-size:26px}.status-strip{display:grid;grid-template-columns:1fr 1fr 1fr 41px;gap:7px;padding:12px 13px;background:#242b25;border-top:1px solid #4b5446;align-items:center;flex:none}.status-strip div{border-right:1px solid #505749;min-width:0}.status-strip span{display:block;font-size:9px;color:#b4b6a3;letter-spacing:.7px}.status-strip strong{display:block;margin-top:3px;font-size:15px;font-weight:650;color:#ecdbaf}.play{height:35px;width:35px;font-size:16px}.bottom-nav{display:grid;grid-template-columns:repeat(5,1fr);background:#171c19;padding:8px 8px calc(9px + env(safe-area-inset-bottom));gap:3px;border-top:1px solid #40483f;flex:none}.bottom-nav button{border:0;background:transparent;color:#9ba397;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;padding:4px}.bottom-nav button span{font-size:22px}.bottom-nav button.active{color:#e8c47a}.sheet-scrim{position:fixed;inset:0;background:#070b08a6;z-index:4;opacity:0;pointer-events:none;transition:opacity .22s}.sheet-scrim.open{opacity:1;pointer-events:auto}.sheet{position:fixed;bottom:0;left:0;right:0;max-width:700px;margin:auto;max-height:min(79dvh,800px);overflow-y:auto;overscroll-behavior:contain;transform:translateY(105%);transition:transform .26s ease;background:#242b25;border:1px solid #68715d;border-bottom:0;border-radius:19px 19px 0 0;box-shadow:0 -15px 60px #0007;z-index:5;padding:12px 20px calc(25px + env(safe-area-inset-bottom));color:#eee8d9}.sheet.open{transform:translateY(0)}.sheet-handle{width:42px;height:4px;border-radius:4px;background:#77806f;margin:-2px auto 18px}.sheet-close{position:absolute;right:16px;top:13px;width:32px;height:32px;background:#364136;border:0;border-radius:9px;color:#f5e7d0}.sheet .kicker{font-size:10px;letter-spacing:2px;color:#d9b775;font-weight:700}.sheet h2{font-family:Georgia,serif;font-size:27px;margin:6px 30px 8px 0;color:#f5e7c8;font-weight:normal}.sheet p{color:#d2d4c8;font-size:14px;line-height:1.55;margin:8px 0 15px}.sheet .fine{font-size:11px;color:#aeb3a3}.meter{margin:17px 0}.meter-head{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}.meter-head b{font-variant-numeric:tabular-nums;color:#e5cb93}.meter-track{height:8px;background:#465045;border-radius:9px;overflow:hidden}.meter-fill{height:100%;background:linear-gradient(90deg,#82986c,#d0b16e);border-radius:9px}.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:16px}.actions button,.wide-btn{border:1px solid #b9a377;background:#4b5140;color:#fff0d2;font-size:13px;font-weight:650;padding:13px 9px;border-radius:10px}.actions button:disabled{opacity:.45;cursor:default}.actions button:active,.wide-btn:active{background:#6b7554}.divider{height:1px;background:#586050;margin:18px 0}.list-button{display:flex;width:100%;padding:14px 4px;gap:12px;align-items:center;text-align:left;border:0;border-bottom:1px solid #455044;background:transparent;color:#f2e6cd}.list-button .mini-icon{width:36px;height:36px;background:#3a463a;border-radius:9px;display:grid;place-items:center;color:#eac47d;font-size:20px}.list-button b{display:block;font-family:Georgia,serif;font-size:16px;font-weight:normal}.list-button small{color:#b0b7a5}.list-button .arrow{margin-left:auto;font-size:23px;color:#e4cb96}.chronicle{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid #475043;font-size:13px}.chronicle time{color:#d3b478;font-size:11px;white-space:nowrap;font-weight:bold}.chronicle span{color:#d8d9cb;line-height:1.45}.tag{font-size:11px;display:inline-block;padding:5px 8px;border:1px solid #646f5b;border-radius:5px;color:#ddc78d;margin:0 5px 8px 0}.notice{background:#323d32;border-left:3px solid #c8ad71;padding:12px;border-radius:5px;color:#e8dfca;font-size:12px;line-height:1.55}.notification{position:absolute;top:15px;left:50%;transform:translate(-50%,-12px);opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;color:#fff0d2;background:#263525ef;padding:10px 15px;max-width:80%;text-align:center;border:1px solid #b69d6c;border-radius:9px;font-size:12px;z-index:3}.notification.show{opacity:1;transform:translate(-50%,0)}@media(min-width:700px){.app{max-width:760px;margin:0 auto;border-left:1px solid #555;border-right:1px solid #555}.brand h1{font-size:27px}.status-strip{padding:13px 25px}.map-help{font-size:12px}}@media(max-height:610px){.topbar{padding-top:8px;padding-bottom:7px}.brand h1{font-size:20px}.status-strip{padding:6px 10px}.bottom-nav{padding-top:3px}.map-help{bottom:7px}}
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eee8d9;background:#171c19;font-synthesis:none}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overscroll-behavior:none}button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible{outline:2px solid #efd29a;outline-offset:3px}.app{height:100dvh;min-height:480px;display:flex;flex-direction:column;overflow:hidden;background:#171c19}.topbar{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 12px) 17px 12px;background:#1c231f;border-bottom:1px solid #444d40;z-index:2;flex:none}.brand .eyebrow{display:block;color:#baaa85;font-size:9px;letter-spacing:2.5px;font-weight:700}.brand h1{font-family:Georgia,serif;font-size:23px;letter-spacing:1.2px;margin:4px 0 2px;line-height:1;color:#f5e9d0}.brand em{font-weight:normal;color:#cfab6c;font-style:normal}.era{font-size:9px;letter-spacing:1.2px;color:#a0a79b}.clock{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:64px;color:#e6d6b6}.clock b{font-size:18px;font-variant-numeric:tabular-nums}.clock small{font-size:9px;letter-spacing:1px;color:#a2a797}.sun{color:#eac47d;font-size:14px}.viewport{flex:1;min-height:0;position:relative;overflow:hidden;background:#859375;touch-action:none}canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}.cx-building-targets{position:absolute;inset:0;pointer-events:none;z-index:2}.cx-building-target{position:absolute;pointer-events:auto;touch-action:none;appearance:none;border:0;padding:0;margin:0;background:transparent;border-radius:10px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}.cx-building-target:focus-visible{outline:2px solid #f4d18a;outline-offset:2px}.cx-building-target:active{background:#f5e8ae24}canvas:active{cursor:grabbing}.map-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,rgba(17,27,22,.24),transparent 27%,transparent 72%,rgba(20,29,22,.15))}.map-title{pointer-events:none;position:absolute;left:18px;top:16px;display:flex;flex-direction:column;color:#f7e8c3;text-shadow:0 2px 8px #273523;letter-spacing:2px;font-family:Georgia,serif;font-size:13px}.map-title strong{font-size:23px;letter-spacing:3px}.map-title-line{display:block;width:33px;border-top:2px solid #d9bd83;margin-bottom:7px}.map-controls{position:absolute;right:12px;top:18px;display:flex;flex-direction:column;gap:5px}.map-controls button,.play{width:37px;height:37px;border:1px solid #d5c49e83;background:#202820db;color:#f1e3c5;border-radius:8px;font-size:23px;box-shadow:0 4px 9px #0002}.map-controls button:active,.play:active{background:#58654b}.map-help{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:#f5e9d2;background:#1c271ddc;border-radius:20px;padding:8px 12px;max-width:96%;text-align:center;pointer-events:none}.map-compass{position:absolute;bottom:57px;right:16px;display:flex;flex-direction:column;align-items:center;color:#f5e7c4;text-shadow:0 1px 5px #171c19}.map-compass span{font-size:10px;font-weight:bold}.map-compass b{font-size:26px}.status-strip{display:grid;grid-template-columns:1fr 1fr 1fr 41px;gap:7px;padding:12px 13px;background:#242b25;border-top:1px solid #4b5446;align-items:center;flex:none}.status-strip div{border-right:1px solid #505749;min-width:0}.status-strip span{display:block;font-size:9px;color:#b4b6a3;letter-spacing:.7px}.status-strip strong{display:block;margin-top:3px;font-size:15px;font-weight:650;color:#ecdbaf}.play{height:35px;width:35px;font-size:16px}.bottom-nav{display:grid;grid-template-columns:repeat(5,1fr);background:#171c19;padding:8px 8px calc(9px + env(safe-area-inset-bottom));gap:3px;border-top:1px solid #40483f;flex:none}.bottom-nav button{border:0;background:transparent;color:#9ba397;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;padding:4px}.bottom-nav button span{font-size:22px}.bottom-nav button.active{color:#e8c47a}.sheet-scrim{position:fixed;inset:0;background:#070b08a6;z-index:4;opacity:0;pointer-events:none;transition:opacity .22s}.sheet-scrim.open{opacity:1;pointer-events:auto}.sheet{position:fixed;bottom:0;left:0;right:0;max-width:700px;margin:auto;max-height:min(79dvh,800px);overflow-y:auto;overscroll-behavior:contain;transform:translateY(105%);transition:transform .26s ease;background:#242b25;border:1px solid #68715d;border-bottom:0;border-radius:19px 19px 0 0;box-shadow:0 -15px 60px #0007;z-index:5;padding:12px 20px calc(25px + env(safe-area-inset-bottom));color:#eee8d9}.sheet.open{transform:translateY(0)}.sheet-handle{width:42px;height:4px;border-radius:4px;background:#77806f;margin:-2px auto 18px}.sheet-close{position:absolute;right:16px;top:13px;width:32px;height:32px;background:#364136;border:0;border-radius:9px;color:#f5e7d0}.sheet .kicker{font-size:10px;letter-spacing:2px;color:#d9b775;font-weight:700}.sheet h2{font-family:Georgia,serif;font-size:27px;margin:6px 30px 8px 0;color:#f5e7c8;font-weight:normal}.sheet p{color:#d2d4c8;font-size:14px;line-height:1.55;margin:8px 0 15px}.sheet .fine{font-size:11px;color:#aeb3a3}.meter{margin:17px 0}.meter-head{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}.meter-head b{font-variant-numeric:tabular-nums;color:#e5cb93}.meter-track{height:8px;background:#465045;border-radius:9px;overflow:hidden}.meter-fill{height:100%;background:linear-gradient(90deg,#82986c,#d0b16e);border-radius:9px}.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:16px}.actions button,.wide-btn{border:1px solid #b9a377;background:#4b5140;color:#fff0d2;font-size:13px;font-weight:650;padding:13px 9px;border-radius:10px}.actions button:disabled{opacity:.45;cursor:default}.actions button:active,.wide-btn:active{background:#6b7554}.divider{height:1px;background:#586050;margin:18px 0}.list-button{display:flex;width:100%;padding:14px 4px;gap:12px;align-items:center;text-align:left;border:0;border-bottom:1px solid #455044;background:transparent;color:#f2e6cd}.list-button .mini-icon{width:36px;height:36px;background:#3a463a;border-radius:9px;display:grid;place-items:center;color:#eac47d;font-size:20px}.list-button b{display:block;font-family:Georgia,serif;font-size:16px;font-weight:normal}.list-button small{color:#b0b7a5}.list-button .arrow{margin-left:auto;font-size:23px;color:#e4cb96}.chronicle{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid #475043;font-size:13px}.chronicle time{color:#d3b478;font-size:11px;white-space:nowrap;font-weight:bold}.chronicle span{color:#d8d9cb;line-height:1.45}.tag{font-size:11px;display:inline-block;padding:5px 8px;border:1px solid #646f5b;border-radius:5px;color:#ddc78d;margin:0 5px 8px 0}.notice{background:#323d32;border-left:3px solid #c8ad71;padding:12px;border-radius:5px;color:#e8dfca;font-size:12px;line-height:1.55}.notification{position:absolute;top:15px;left:50%;transform:translate(-50%,-12px);opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;color:#fff0d2;background:#263525ef;padding:10px 15px;max-width:80%;text-align:center;border:1px solid #b69d6c;border-radius:9px;font-size:12px;z-index:3}.notification.show{opacity:1;transform:translate(-50%,0)}@media(min-width:700px){.app{max-width:760px;margin:0 auto;border-left:1px solid #555;border-right:1px solid #555}.brand h1{font-size:27px}.status-strip{padding:13px 25px}.map-help{font-size:12px}}@media(max-height:610px){.topbar{padding-top:8px;padding-bottom:7px}.brand h1{font-size:20px}.status-strip{padding:6px 10px}.bottom-nav{padding-top:3px}.map-help{bottom:7px}}
 
 .resource-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:#101611;border-top:1px solid #6c624b}.resource-strip div{padding:7px 2px;text-align:center;background:#253027;min-width:0}.resource-strip span{display:block;font-size:8px;color:#c6b58a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.resource-strip b{display:block;font-size:13px;color:#f3e5c9;margin-top:3px}.map-title{top:13px}.map-help{bottom:8px}@media(max-height:650px){.resource-strip div{padding:4px 2px}.resource-strip span{font-size:7px}.resource-strip b{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.sheet,.sheet-scrim,.notification{transition:none}}
@@ -648,18 +648,65 @@ function draw(){if(regionMode){drawRegion();return}if(!vw||!vh||document.hidden)
  const key=[canvas.width,canvas.height,zoom.toFixed(4),panX.toFixed(2),panY.toFixed(2),liveClock.season].join('|');
  if(key!==staticKey){staticKey=key;if(staticCanvas.width!==canvas.width||staticCanvas.height!==canvas.height){staticCanvas.width=canvas.width;staticCanvas.height=canvas.height}
   const g=staticCanvas.getContext('2d');ctx=g;try{g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle='#859375';g.fillRect(0,0,vw,vh);g.save();transform();g.translate(RIVER_OFFSET,0);drawStaticMap();g.restore()}finally{ctx=mainCtx}}
- ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(staticCanvas,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.save();transform();ctx.translate(RIVER_OFFSET,0);drawDynamicMap();ctx.restore()}
+ ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(staticCanvas,0,0);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.save();transform();ctx.translate(RIVER_OFFSET,0);drawDynamicMap();ctx.restore();updateBuildingTargets()}
 function resize(){const r=canvas.getBoundingClientRect();vw=r.width;vh=r.height;dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.round(vw*dpr));canvas.height=Math.max(1,Math.round(vh*dpr));base=Math.min(vw/950,vh/850);resizeRegion();draw()}
 function toWorld(cx,cy){return {x:(cx-vw/2-panX)/(base*zoom)+WORLD_W/2,y:(cy-vh/2-panY)/(base*zoom)+WORLD_H/2}}
 function setZoom(next,x=vw/2,y=vh/2){const before=toWorld(x,y);zoom=clamp(next,.65,3.1);const after=toWorld(x,y);panX+=(after.x-before.x)*base*zoom;panY+=(after.y-before.y)*base*zoom;draw()}
 function centerBuilding(id){if(regionMode)setRegionMode(false);const d=defs[id];zoom=Math.max(zoom,1.15);panX=-(d.x+RIVER_OFFSET+d.w/2-WORLD_W/2)*base*zoom;panY=-(d.y+d.h/2-WORLD_H/2)*base*zoom;draw()}
 $('zoomIn').onclick=()=>regionMode?regionZoomBy(1.28):setZoom(zoom*1.28);$('zoomOut').onclick=()=>regionMode?regionZoomBy(1/1.28):setZoom(zoom/1.28);$('resetView').onclick=()=>{if(regionMode){rZoom=1;rPanX=0;rPanY=0;drawRegion()}else{zoom=1;panX=52;panY=0;draw()}};
-let pointers=new Map(),gesture=null;
-canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1)gesture={startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,pinch:false};else if(pointers.size===2){gesture.pinch=true;gesture.moved=true;gesture.distance=distance();gesture.initialZoom=zoom}});
-function distance(){const p=[...pointers.values()];return Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}
-canvas.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;const prev=pointers.get(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(!gesture)return;const r=canvas.getBoundingClientRect();if(pointers.size===2){let d=distance();const pts=[...pointers.values()];setZoom(gesture.initialZoom*d/Math.max(1,gesture.distance),(pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top)}else if(pointers.size===1){const travel=Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY);if(travel>12)gesture.moved=true;if(gesture.moved){panX+=e.clientX-prev.x;panY+=e.clientY-prev.y;draw()}}});
-// Trefferzonen direkt in Bildschirm-Pixeln berechnen. Dadurch bleiben Gebäude auch
-// bei kleinem Zoom und hoher Android-Pixeldichte zuverlässig antippbar.
+// A separate DOM hit target sits directly over each drawn building.
+// Buttons give Android WebView a real touch target; the same pointer gesture
+// handler handles both canvas and buttons, so dragging and pinch zoom still work.
+const buildingTargets=document.createElement('div');
+buildingTargets.id='buildingTargets';
+buildingTargets.className='cx-building-targets';
+canvas.insertAdjacentElement('afterend',buildingTargets);
+const targetEls=new Map();
+for(const [id,d] of Object.entries(defs)){
+ const el=document.createElement('button');el.type='button';el.className='cx-building-target';
+ el.dataset.building=id;el.setAttribute('aria-label',d.name+' öffnen');
+ buildingTargets.appendChild(el);targetEls.set(id,el);
+}
+function updateBuildingTargets(){
+ const scale=base*zoom;
+ for(const [id,d] of Object.entries(defs)){
+  const el=targetEls.get(id);
+  const x=vw/2+panX+(d.x+RIVER_OFFSET-WORLD_W/2)*scale;
+  const y=vh/2+panY+(d.y-WORLD_H/2)*scale;
+  const w=d.w*scale,h=d.h*scale;
+  const bw=Math.max(46,w+10),bh=Math.max(46,h+10);
+  el.style.left=(x+w/2-bw/2)+'px';
+  el.style.top=(y+h/2-bh/2)+'px';
+  el.style.width=bw+'px';el.style.height=bh+'px';
+  el.hidden=regionMode;
+ }
+ buildingTargets.style.display=regionMode?'none':'block';
+}
+const pointers=new Map();
+let gesture=null,lastPointerTap=0;
+const isMapInput=el=>el===canvas||!!el?.closest?.('.cx-building-target');
+const inputRoot=$('viewport');
+function distance(){const p=[...pointers.values()];return p.length<2?0:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}
+inputRoot.addEventListener('pointerdown',e=>{
+ if(regionMode||!isMapInput(e.target))return;
+ try{e.target.setPointerCapture(e.pointerId)}catch{}
+ pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(pointers.size===1)gesture={startX:e.clientX,startY:e.clientY,moved:false,pinch:false};
+ else if(pointers.size===2&&gesture){gesture.pinch=true;gesture.moved=true;gesture.distance=distance();gesture.initialZoom=zoom}
+});
+inputRoot.addEventListener('pointermove',e=>{
+ if(!pointers.has(e.pointerId)||!gesture)return;
+ const prev=pointers.get(e.pointerId);
+ pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ const r=canvas.getBoundingClientRect();
+ if(pointers.size===2){
+  const d=distance(),pts=[...pointers.values()];
+  setZoom(gesture.initialZoom*d/Math.max(1,gesture.distance),(pts[0].x+pts[1].x)/2-r.left,(pts[0].y+pts[1].y)/2-r.top);
+ }else if(pointers.size===1){
+  if(Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)>12)gesture.moved=true;
+  if(gesture.moved){panX+=e.clientX-prev.x;panY+=e.clientY-prev.y;draw()}
+ }
+});
 function buildingAtScreen(clientX,clientY){
  const bounds=canvas.getBoundingClientRect();
  const px=clientX-bounds.left,py=clientY-bounds.top;
@@ -669,37 +716,34 @@ function buildingAtScreen(clientX,clientY){
   const x=vw/2+panX+(d.x+RIVER_OFFSET-WORLD_W/2)*scale;
   const y=vh/2+panY+(d.y-WORLD_H/2)*scale;
   const w=d.w*scale,h=d.h*scale;
-  // Minimum 48x48 CSS-Pixel pro Gebäude, aber keine riesigen Trefferflächen.
-  const padX=Math.max(8,(48-w)/2),padY=Math.max(8,(48-h)/2);
+  const padX=Math.max(6,(46-w)/2),padY=Math.max(6,(46-h)/2);
   if(px<x-padX||px>x+w+padX||py<y-padY||py>y+h+padY)continue;
-  const dx=Math.max(x-px,0,px-(x+w));
-  const dy=Math.max(y-py,0,py-(y+h));
+  const dx=Math.max(x-px,0,px-(x+w)),dy=Math.max(y-py,0,py-(y+h));
   const score=dx*dx+dy*dy;
   if(score<bestScore){best=id;bestScore=score}
  }
  return best;
 }
-let lastPointerTap=0;
-function openBuildingAt(clientX,clientY){
- const id=buildingAtScreen(clientX,clientY);
- if(id){showBuilding(id);return true}
- return false;
-}
-function finishPointer(e){
+function finishMapPointer(e){
  if(!pointers.has(e.pointerId))return;
- const isTap=e.type==='pointerup'&&pointers.size===1&&gesture&&!gesture.moved&&!gesture.pinch&&Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)<15;
+ const tapped=e.type==='pointerup'&&pointers.size===1&&gesture&&!gesture.pinch&&!gesture.moved
+  &&Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)<15;
  pointers.delete(e.pointerId);
- lastPointerTap=Date.now(); // Auch nach Ziehen keinen synthetischen Klick auslösen.
- if(isTap)openBuildingAt(e.clientX,e.clientY)
- if(pointers.size===0)gesture=null;
+ lastPointerTap=Date.now();
+ if(tapped&&!regionMode){
+  const id=e.target.closest?.('.cx-building-target')?.dataset.building || buildingAtScreen(e.clientX,e.clientY);
+  if(id)showBuilding(id);
+ }
+ if(!pointers.size)gesture=null;
  else if(gesture){gesture.pinch=true;gesture.moved=true}
 }
-canvas.addEventListener('pointerup',finishPointer);
-canvas.addEventListener('pointercancel',finishPointer);
-// Fallback für WebViews, die keinen verlässlichen Pointer-Up-Tap liefern.
-canvas.addEventListener('click',e=>{
- if(Date.now()-lastPointerTap<700||pointers.size||regionMode)return;
- openBuildingAt(e.clientX,e.clientY);
+inputRoot.addEventListener('pointerup',finishMapPointer);
+inputRoot.addEventListener('pointercancel',finishMapPointer);
+// Click fallback for non-pointer inputs. Ignore synthetic click after handled pointerup.
+inputRoot.addEventListener('click',e=>{
+ if(regionMode||pointers.size||Date.now()-lastPointerTap<700||!isMapInput(e.target))return;
+ const id=e.target.closest?.('.cx-building-target')?.dataset.building || buildingAtScreen(e.clientX,e.clientY);
+ if(id)showBuilding(id);
 });
 canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();setZoom(zoom*(e.deltaY<0?1.12:.89),e.clientX-r.left,e.clientY-r.top)},{passive:false});
 window.addEventListener('resize',resize);if('ResizeObserver' in window)new ResizeObserver(resize).observe(canvas);
@@ -769,7 +813,7 @@ for(const p of places){const q=geo(p.lat,p.lon),isC=p.id==='colonia';rx.save();r
 rx.restore();rx.fillStyle='#223127dd';rx.fillRect(12,rH-30,108,21);rx.fillStyle='#e6d6ac';rx.font='11px system-ui';rx.textAlign='left';rx.fillText('≈ 50 km Radius',19,rH-15);
 }
 function regionZoomBy(mult,x=rW/2,y=rH/2){const before=rPoint(x,y);rZoom=clamp(rZoom*mult,.65,5);const after=rPoint(x,y);rPanX+=(after.x-before.x)*rBase()*rZoom;rPanY+=(after.y-before.y)*rBase()*rZoom;drawRegion()}
-function setRegionMode(on){regionMode=on;$('regionView').classList.toggle('active',on);$('regionInfo').classList.toggle('active',on);$('regionLegend').classList.toggle('active',on);$('regionSwitch').classList.toggle('active',on);$('regionSwitch').textContent=on?'⌂ ZUR STADT':'◈ REGION · 50 KM';$('mapHelp').textContent=on?'Fundorte / Handelswege antippen · 50 km Radius':'Schiffe fahren · Bürger bewegen sich · Gebäude antippen';if(on){resizeRegion();drawRegion()}else draw()}
+function setRegionMode(on){regionMode=on;if(typeof buildingTargets!=='undefined')buildingTargets.style.display=on?'none':'block';$('regionView').classList.toggle('active',on);$('regionInfo').classList.toggle('active',on);$('regionLegend').classList.toggle('active',on);$('regionSwitch').classList.toggle('active',on);$('regionSwitch').textContent=on?'⌂ ZUR STADT':'◈ REGION · 50 KM';$('mapHelp').textContent=on?'Fundorte / Handelswege antippen · 50 km Radius':'Schiffe fahren · Bürger bewegen sich · Gebäude antippen';if(on){resizeRegion();drawRegion()}else draw()}
 $('regionSwitch').onclick=()=>{closeSheet();setRegionMode(!regionMode)};
 function showPlace(p){opened='region-'+p.id;let isCity=p.id==='colonia';const tradeOk=Boolean(TRADE_ROUTES.find(r=>r.place===p.id));openSheet(`<span class="kicker">REGIO RHENI · CA. 150 N. CHR.</span><h2>${p.name}</h2><p>${p.description}</p><div class="notice">Historisch belegter Ort oder Fundplatz. Die Markerpositionen sind ungefähr, Wege und antiker Flusslauf bewusst schematisch. Keine metergenaue archäologische Karte.</div><div class="actions"><button type="button" id="regioBack">${isCity?'Stadt betreten':'Zur Regionskarte'}</button><button type="button" id="regioSource">Historische Quelle ↗</button>${tradeOk?'<button type="button" id="regioTrade">Handel mit diesem Ort ⚓</button>':''}</div>`);if(tradeOk)$('regioTrade').onclick=()=>showTrade(p.id);$('regioBack').onclick=()=>{closeSheet();if(isCity)setRegionMode(false)};$('regioSource').onclick=()=>window.open(p.source,'_blank','noopener')}
 rc.addEventListener('pointerdown',e=>{rc.setPointerCapture(e.pointerId);rTouch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(rTouch.size===1)rGesture={sx:e.clientX,sy:e.clientY,moved:false,lastDist:0};else if(rTouch.size===2){rGesture.moved=true;rGesture.lastDist=rTouchDistance()}});
