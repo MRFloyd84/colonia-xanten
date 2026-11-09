@@ -44,7 +44,7 @@ jobs:
           node-version: '22'
       - name: JavaScript auf Syntaxfehler prüfen
         run: |
-          python3 -c 'from pathlib import Path; import re; s=Path("www/game.html").read_text(); m=re.search(r"<script>([\\s\\S]*?)</script>",s); assert m,"Spielskript fehlt"; Path("/tmp/colonia-game-check.js").write_text(m.group(1))'
+          python3 -c 'from pathlib import Path; import re; s=Path("www/game.html").read_text(); m=re.search(r"<script>(.*?)</script>",s,re.S); assert m,"Spielskript fehlt"; Path("/tmp/colonia-game-check.js").write_text(m.group(1))'
           node --check /tmp/colonia-game-check.js
       - name: Spielversion setzen
         env:
